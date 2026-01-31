@@ -58,13 +58,11 @@ jobs:
       
       - name: Record baseline (if not cached)
         if: steps.baseline-cache.outputs.cache-hit != 'true'
-        run: pnpm --filter @lint-ui/cli dev record
-        working-directory: examples/react-vite
+        run: cd examples/react-vite && ../../packages/cli/bin/dev.js record
       
       - name: Run Lint UI checks
         id: lint-ui
-        run: pnpm --filter @lint-ui/cli dev run
-        working-directory: examples/react-vite
+        run: cd examples/react-vite && ../../packages/cli/bin/dev.js run
         continue-on-error: true
       
       - name: Upload test results
