@@ -58,11 +58,11 @@ jobs:
       
       - name: Record baseline (if not cached)
         if: steps.baseline-cache.outputs.cache-hit != 'true'
-        run: cd examples/react-vite && ../../packages/cli/bin/dev.js record
+        run: cd examples/react-vite && node ../../packages/cli/bin/dev.js record
       
       - name: Run Lint UI checks
         id: lint-ui
-        run: cd examples/react-vite && ../../packages/cli/bin/dev.js run
+        run: cd examples/react-vite && node ../../packages/cli/bin/dev.js run
         continue-on-error: true
       
       - name: Upload test results
