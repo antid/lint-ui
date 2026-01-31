@@ -1,0 +1,31 @@
+{
+  "name": "lint-ui",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Visual regression and UI compliance testing for modern web applications",
+  "keywords": [
+    "visual-regression",
+    "accessibility",
+    "ui-testing",
+    "compliance",
+    "ci"
+  ],
+  "license": "MIT",
+  "author": "",
+  "workspaces": [
+    "packages/*",
+    "examples/*"
+  ],
+  "scripts": {
+    "build": "pnpm -r build",
+    "dev": "pnpm -r --parallel dev",
+    "clean": "pnpm -r clean && rm -rf node_modules",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "packageManager": "pnpm@8.15.0"
+}

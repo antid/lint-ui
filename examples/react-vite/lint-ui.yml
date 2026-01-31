@@ -1,0 +1,43 @@
+baseUrl: http://localhost:4173
+
+routes:
+  - path: /
+    name: home
+  - path: /dashboard
+    name: dashboard
+  - path: /settings
+    name: settings
+  - path: /pricing
+    name: pricing
+
+breakpoints:
+  - name: mobile
+    width: 375
+    height: 812
+  - name: tablet
+    width: 768
+    height: 1024
+  - name: desktop
+    width: 1280
+    height: 800
+  - name: large
+    width: 1440
+    height: 900
+
+variants:
+  theme: [light, dark]
+
+thresholds:
+  pixelDiffThreshold: 0.1
+  layoutShiftThreshold: 0.1
+
+rules:
+  checkOverflow: true
+  checkClipping: true
+  checkAccessibility: true
+  checkContrast: true
+
+disableAnimations: true
+readySelector: '[data-ui-ready="true"]'
+outputDir: .lint-ui
+baselineDir: .ui-baseline

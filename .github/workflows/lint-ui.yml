@@ -1,0 +1,116 @@
+name: Lint UI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  lint-ui:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+      
+      - name: Install dependencies
+        run: pnpm install
+      
+      - name: Build packages
+        run: pnpm build
+      
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+        working-directory: packages/runner
+      
+      - name: Build example app
+        run: pnpm build
+        working-directory: examples/react-vite
+      
+      - name: Start preview server
+        run: pnpm preview &
+        working-directory: examples/react-vite
+      
+      - name: Wait for server
+        run: |
+          timeout 30 bash -c 'until curl -s http://localhost:4173 > /dev/null; do sleep 1; done'
+      
+      - name: Download baseline screenshots
+        uses: actions/cache@v3
+        id: baseline-cache
+        with:
+          path: examples/react-vite/.ui-baseline
+          key: ui-baseline-${{ github.base_ref || 'main' }}
+      
+      - name: Record baseline (if not cached)
+        if: steps.baseline-cache.outputs.cache-hit != 'true'
+        run: pnpm --filter @lint-ui/cli dev record
+        working-directory: examples/react-vite
+      
+      - name: Run Lint UI checks
+        id: lint-ui
+        run: pnpm --filter @lint-ui/cli dev run
+        working-directory: examples/react-vite
+        continue-on-error: true
+      
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-ui-results
+          path: |
+            examples/react-vite/.lint-ui/
+            !examples/react-vite/.lint-ui/temp/
+          retention-days: 30
+      
+      - name: Upload baseline screenshots
+        if: github.ref == 'refs/heads/main'
+        uses: actions/cache@v3
+        with:
+          path: examples/react-vite/.ui-baseline
+          key: ui-baseline-${{ github.ref }}
+      
+      - name: Comment PR
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const reportPath = 'examples/react-vite/.lint-ui/report.md';
+            
+            let comment = '## 🎨 Lint UI Results\n\n';
+            
+            if (fs.existsSync(reportPath)) {
+              comment += fs.readFileSync(reportPath, 'utf8');
+            } else {
+              comment += '${{ steps.lint-ui.outcome }}' === 'success' 
+                ? '✅ All visual regression tests passed!'
+                : '❌ Visual regression tests failed. Check artifacts for details.';
+            }
+            
+            comment += '\n\n[View full artifacts](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})';
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+      
+      - name: Fail if tests failed
+        if: steps.lint-ui.outcome == 'failure'
+        run: exit 1

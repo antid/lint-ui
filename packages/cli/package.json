@@ -1,0 +1,52 @@
+{
+  "name": "@lint-ui/cli",
+  "version": "0.1.0",
+  "description": "CLI for Lint UI - visual regression and compliance testing",
+  "keywords": [
+    "cli",
+    "lint-ui"
+  ],
+  "license": "MIT",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "lint-ui": "./bin/run.js"
+  },
+  "files": [
+    "/bin",
+    "/dist",
+    "/oclif.manifest.json"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "rm -rf dist *.tsbuildinfo",
+    "dev": "node ./bin/dev.js",
+    "lint": "eslint . --ext .ts",
+    "test": "echo \"No tests yet\""
+  },
+  "dependencies": {
+    "@oclif/core": "^3.18.1",
+    "@oclif/plugin-help": "^6.0.12",
+    "@lint-ui/runner": "workspace:*",
+    "@lint-ui/rules": "workspace:*",
+    "@lint-ui/reporter": "workspace:*",
+    "chalk": "^4.1.2",
+    "ora": "^5.4.1",
+    "yaml": "^2.3.4",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "oclif": {
+    "bin": "lint-ui",
+    "dirname": "lint-ui",
+    "commands": "./dist/commands",
+    "topicSeparator": " "
+  }
+}

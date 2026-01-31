@@ -1,0 +1,170 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Lint UI Configuration",
+  "description": "Configuration schema for Lint UI visual regression and compliance testing",
+  "type": "object",
+  "required": ["baseUrl", "routes"],
+  "properties": {
+    "baseUrl": {
+      "type": "string",
+      "format": "uri",
+      "description": "The base URL of the application to test"
+    },
+    "routes": {
+      "type": "array",
+      "description": "List of routes to test",
+      "items": {
+        "type": "object",
+        "required": ["path"],
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Route path (e.g., /, /dashboard)"
+          },
+          "name": {
+            "type": "string",
+            "description": "Friendly name for the route"
+          },
+          "waitFor": {
+            "type": "string",
+            "description": "CSS selector to wait for, or 'networkidle'"
+          }
+        }
+      }
+    },
+    "breakpoints": {
+      "type": "array",
+      "description": "Viewport breakpoints to test",
+      "default": [
+        { "name": "mobile", "width": 375, "height": 812 },
+        { "name": "tablet", "width": 768, "height": 1024 },
+        { "name": "desktop", "width": 1280, "height": 800 },
+        { "name": "large", "width": 1440, "height": 900 }
+      ],
+      "items": {
+        "type": "object",
+        "required": ["name", "width"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Breakpoint name"
+          },
+          "width": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Viewport width in pixels"
+          },
+          "height": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Viewport height in pixels"
+          }
+        }
+      }
+    },
+    "variants": {
+      "type": "object",
+      "description": "UI variants to test (theme, locale, etc.)",
+      "properties": {
+        "theme": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Theme variants (e.g., ['light', 'dark'])"
+        },
+        "locale": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Locale variants (e.g., ['en', 'es'])"
+        },
+        "userRole": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "User role variants (e.g., ['admin', 'user'])"
+        }
+      }
+    },
+    "thresholds": {
+      "type": "object",
+      "description": "Thresholds for test failures",
+      "properties": {
+        "pixelDiffThreshold": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.1,
+          "description": "Maximum allowed pixel difference (0-1)"
+        },
+        "layoutShiftThreshold": {
+          "type": "number",
+          "default": 0.1,
+          "description": "Maximum allowed layout shift"
+        }
+      }
+    },
+    "rules": {
+      "type": "object",
+      "description": "Validation rules to enable",
+      "properties": {
+        "checkOverflow": {
+          "type": "boolean",
+          "default": true,
+          "description": "Check for horizontal overflow"
+        },
+        "checkClipping": {
+          "type": "boolean",
+          "default": true,
+          "description": "Check for text clipping"
+        },
+        "checkAccessibility": {
+          "type": "boolean",
+          "default": true,
+          "description": "Run accessibility checks"
+        },
+        "checkContrast": {
+          "type": "boolean",
+          "default": true,
+          "description": "Check color contrast"
+        }
+      }
+    },
+    "auth": {
+      "type": "object",
+      "description": "Authentication configuration",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["cookie", "localStorage", "header"],
+          "description": "Authentication type"
+        },
+        "value": {
+          "type": "object",
+          "description": "Authentication values (key-value pairs)"
+        }
+      }
+    },
+    "ignoreSelectors": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "CSS selectors to ignore in diffs (e.g., timestamps, ads)"
+    },
+    "readySelector": {
+      "type": "string",
+      "description": "CSS selector indicating the page is ready for testing"
+    },
+    "disableAnimations": {
+      "type": "boolean",
+      "default": true,
+      "description": "Disable animations during tests"
+    },
+    "outputDir": {
+      "type": "string",
+      "default": ".lint-ui",
+      "description": "Directory for test output"
+    },
+    "baselineDir": {
+      "type": "string",
+      "default": ".ui-baseline",
+      "description": "Directory for baseline screenshots"
+    }
+  }
+}
