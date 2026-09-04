@@ -6,6 +6,7 @@ Welcome to Lint UI! This guide will help you set up and run your first visual re
 
 - Node.js 20+
 - pnpm 8+
+- Playwright Chromium browser (see below)
 
 ## Installation
 
@@ -13,6 +14,19 @@ The project is already set up as a monorepo. Install dependencies:
 
 ```bash
 pnpm install
+```
+
+Install the browser Lint UI drives (one-time per machine; browsers are shared
+across projects in the OS cache):
+
+```bash
+pnpm --filter @lint-ui/runner exec playwright install chromium
+```
+
+Verify the installation:
+
+```bash
+pnpm --filter @lint-ui/runner exec playwright install --dry-run chromium
 ```
 
 Build all packages:
@@ -210,6 +224,25 @@ Ensure the dev server is running at the configured `baseUrl`
 
 ### All tests failing
 Check that `baseUrl` in config matches your running server
+
+### Browser errors (`Executable doesn't exist`, `Target crashed`)
+The Playwright Chromium binary is missing or incompatible. Reinstall it:
+
+```bash
+pnpm --filter @lint-ui/runner exec playwright install chromium
+```
+
+If you installed the CLI outside this monorepo, install the browser through the
+CLI's own dependency tree so the versions always match (browsers live in the
+shared OS cache, so this is one-time per machine):
+
+```bash
+# npm / yarn (hoisted binaries)
+npx playwright install chromium
+
+# pnpm (strict binaries resolve via the CLI package)
+pnpm --package=@lint-ui/cli dlx playwright install chromium
+```
 
 ## Tips
 
