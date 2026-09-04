@@ -113,7 +113,8 @@ fail it by default.
 - Theme, locale, and user-role matrix expansion.
 - Authenticated flows (for example Playwright storage-state login).
 - Overlap, minimum-target-size, and breakpoint-visibility heuristics.
-- Direct pull-request comment management.
+- Direct pull-request comment management by the Lint UI CLI. A consuming
+  repository may add an optional GitHub Actions comment step around CLI output.
 - Performance or Core Web Vitals testing.
 
 These options must not appear as functional configuration or CLI features until

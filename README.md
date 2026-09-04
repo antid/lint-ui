@@ -132,9 +132,9 @@ See [the v1 specification](V1_SPEC.md) and
 
 GitHub Actions workflow included at `.github/workflows/lint-ui.yml`:
 
-- Runs on every PR
+- Runs on pull requests to `main` and pushes to `main`
 - Restores shared baseline screenshots (records them on first run)
-- Posts results as PR comments
+- Attempts to post results as PR comments when the workflow token permits it
 - Verifies stability with five consecutive runs
 - Smoke-tests an external install outside the monorepo
 - Uploads the HTML report, diff images, and logs as artifacts
