@@ -1,35 +1,4 @@
-interface TestResult {
-  route: string;
-  breakpoint: string;
-  passed: boolean;
-  visualDiff?: {
-    diffPixels: number;
-    diffPercentage: number;
-    diffImagePath: string;
-  };
-  layoutIssues?: Array<{
-    type: string;
-    message: string;
-    severity: 'error' | 'warning';
-  }>;
-  accessibilityViolations?: Array<{
-    id: string;
-    impact: string;
-    description: string;
-    nodes: number;
-  }>;
-}
-
-interface RunResults {
-  timestamp: number;
-  hasFailures: boolean;
-  results: TestResult[];
-  summary: {
-    total: number;
-    passed: number;
-    failed: number;
-  };
-}
+import type { RunResults } from '@lint-ui/runner';
 
 export class Reporter {
   generateMarkdown(results: RunResults): string {

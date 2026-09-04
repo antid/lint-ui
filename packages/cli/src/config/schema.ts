@@ -1,4 +1,9 @@
 import { z } from 'zod';
+import type {
+  Breakpoint as RunnerBreakpoint,
+  Config as RunnerConfig,
+  Route as RunnerRoute,
+} from '@lint-ui/runner';
 
 export const BreakpointSchema = z.object({
   name: z.string(),
@@ -35,6 +40,9 @@ export const AuthSchema = z.object({
   value: z.record(z.string()).optional(),
 });
 
+const unsupportedOption = (name: string) =>
+  z.any().refine(() => false, `${name} is planned but not supported yet`).optional();
+
 export const ConfigSchema = z.object({
   baseUrl: z.string().url(),
   routes: z.array(RouteSchema),
@@ -44,17 +52,17 @@ export const ConfigSchema = z.object({
     { name: 'desktop', width: 1280, height: 800 },
     { name: 'large', width: 1440, height: 900 },
   ]),
-  variants: VariantSchema.optional(),
-  thresholds: ThresholdSchema.default({}),
-  rules: RulesSchema.default({}),
-  auth: AuthSchema.optional(),
-  ignoreSelectors: z.array(z.string()).optional(),
+  variants: unsupportedOption('variants'),
+  thresholds: unsupportedOption('thresholds'),
+  rules: unsupportedOption('rules'),
+  auth: unsupportedOption('auth'),
+  ignoreSelectors: unsupportedOption('ignoreSelectors'),
   readySelector: z.string().optional(),
   disableAnimations: z.boolean().default(true),
   outputDir: z.string().default('.lint-ui'),
   baselineDir: z.string().default('.ui-baseline'),
-});
+}).strict();
 
-export type Config = z.infer<typeof ConfigSchema>;
-export type Breakpoint = z.infer<typeof BreakpointSchema>;
-export type Route = z.infer<typeof RouteSchema>;
+export type Config = RunnerConfig;
+export type Breakpoint = RunnerBreakpoint;
+export type Route = RunnerRoute;

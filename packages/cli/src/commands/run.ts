@@ -2,6 +2,8 @@ import { Command, Flags } from '@oclif/core';
 import { ConfigLoader } from '../config/loader.js';
 import { Runner } from '@lint-ui/runner';
 import { Reporter } from '@lint-ui/reporter';
+import type { RunResults } from '@lint-ui/runner';
+import { EXIT_EXECUTION_ERROR, EXIT_QUALITY_FAILURE } from '../exit-codes.js';
 
 export default class Run extends Command {
   static description = 'Run Lint UI checks';
@@ -9,7 +11,6 @@ export default class Run extends Command {
   static examples = [
     '<%= config.bin %> <%= command.id %>',
     '<%= config.bin %> <%= command.id %> --config custom.yml',
-    '<%= config.bin %> <%= command.id %> --changed-only',
   ];
 
   static flags = {
@@ -18,14 +19,6 @@ export default class Run extends Command {
       description: 'Path to config file',
       default: 'lint-ui.yml',
     }),
-    'changed-only': Flags.boolean({
-      description: 'Only test changed routes',
-      default: false,
-    }),
-    base: Flags.string({
-      description: 'Base branch for comparison',
-      default: 'origin/main',
-    }),
   };
 
   async run(): Promise<void> {
@@ -33,24 +26,27 @@ export default class Run extends Command {
 
     this.log('🔍 Running Lint UI checks...\n');
 
+    let results: RunResults;
+
     try {
       const config = await ConfigLoader.load(flags.config);
       const runner = new Runner(config);
 
-      const results = await runner.runChecks();
+      results = await runner.runChecks();
 
       const reporter = new Reporter();
       const report = reporter.generateMarkdown(results);
 
       this.log('\n' + report);
 
-      if (results.hasFailures) {
-        this.error('❌ Lint UI checks failed', { exit: 1 });
-      } else {
-        this.log('\n✅ All checks passed');
-      }
     } catch (error) {
-      this.error(`Failed to run checks: ${error}`);
+      this.error(`Failed to run checks: ${error}`, { exit: EXIT_EXECUTION_ERROR });
     }
+
+    if (results.hasFailures) {
+      this.error('❌ Lint UI checks failed', { exit: EXIT_QUALITY_FAILURE });
+    }
+
+    this.log('\n✅ All checks passed');
   }
 }

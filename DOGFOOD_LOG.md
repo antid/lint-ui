@@ -73,3 +73,20 @@ Starting evidence before v1 engineering:
 
 This audit is the comparison point for the final case study; preserve it even after
 the defects are fixed.
+
+## Engineering evidence — M0 foundation
+
+### 2026-09-04 — Replace claims with verified contracts
+
+- Branch: `m0-engineering-foundation`
+- Starting condition: no automated tests; advertised options were silently ignored;
+  `init` created the wrong filename; quality failures could be caught and converted
+  into execution errors by the CLI.
+- Change: added configuration and initialization tests, rejected planned options,
+  centralized public result/configuration types, defined exit semantics, and made CI
+  run tests and type checking.
+- Verification: 13 automated tests pass and all workspace packages type-check/build.
+- Product insight: an honest, narrow feature set is more valuable than accepting
+  configuration that gives users false confidence.
+- Portfolio relevance: demonstrates turning a proof of concept into an explicit,
+  test-backed product contract before expanding functionality.

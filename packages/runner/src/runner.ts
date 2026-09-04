@@ -64,6 +64,7 @@ export class Runner {
         const result: TestResult = {
           route: route.path,
           breakpoint: breakpoint.name,
+          status: 'passed',
           passed: true,
           layoutIssues: [],
           accessibilityViolations: [],
@@ -75,6 +76,7 @@ export class Runner {
           const diffResult = await differ.compare(baselinePath, currentPath);
           
           if (diffResult.diffPercentage > 0.1) { // 10% threshold
+            result.status = 'failed';
             result.passed = false;
             result.visualDiff = {
               diffPixels: diffResult.diffPixels,

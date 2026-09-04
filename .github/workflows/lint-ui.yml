@@ -28,7 +28,13 @@ jobs:
           cache: 'pnpm'
       
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
+
+      - name: Run unit tests
+        run: pnpm test
+
+      - name: Type-check packages
+        run: pnpm typecheck
       
       - name: Build packages
         run: pnpm build

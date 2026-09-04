@@ -5,13 +5,15 @@ only when its behavior is automated and documented.
 
 ## M0 — Establish truth and safety
 
-- [ ] Add a test runner and initial unit/CLI test structure.
-- [ ] Fix `lint-ui init` to create the advertised `lint-ui.yml`.
-- [ ] Consolidate duplicated configuration and result types.
-- [ ] Remove or mark unimplemented CLI/configuration options.
-- [ ] Define public statuses, failure policy, and process exit codes.
-- [ ] Add repository checks for build, type checking, and tests.
-- [ ] Align README claims with implemented behavior.
+- [x] Add a test runner and initial unit/CLI test structure.
+- [x] Fix `lint-ui init` to create the advertised `lint-ui.yml`.
+- [x] Consolidate duplicated configuration and result types around the runner's
+      public contracts.
+- [x] Remove or mark unimplemented CLI/configuration options.
+- [x] Define initial public statuses, failure policy, and process exit codes. (M1
+      expands statuses for missing baselines and execution errors.)
+- [x] Add repository checks for build, type checking, and tests.
+- [x] Align README claims with implemented behavior.
 
 Exit criteria: a clean checkout builds and tests, and documentation no longer claims
 that unimplemented behavior works.

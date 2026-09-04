@@ -27,10 +27,6 @@ export class ConfigLoader {
 routes:
   - path: /
     name: home
-  - path: /dashboard
-    name: dashboard
-  - path: /settings
-    name: settings
 
 breakpoints:
   - name: mobile
@@ -45,19 +41,6 @@ breakpoints:
   - name: large
     width: 1440
     height: 900
-
-variants:
-  theme: [light, dark]
-
-thresholds:
-  pixelDiffThreshold: 0.1
-  layoutShiftThreshold: 0.1
-
-rules:
-  checkOverflow: true
-  checkClipping: true
-  checkAccessibility: true
-  checkContrast: true
 
 disableAnimations: true
 readySelector: '[data-ui-ready="true"]'
