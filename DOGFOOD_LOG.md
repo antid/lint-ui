@@ -90,3 +90,21 @@ the defects are fixed.
   configuration that gives users false confidence.
 - Portfolio relevance: demonstrates turning a proof of concept into an explicit,
   test-backed product contract before expanding functionality.
+
+### 2026-09-04 — First real-browser visual regression acceptance test
+
+- Project and branch: bundled React/Vite example on `m1-trustworthy-visual-regression`.
+- Product change being tested: configurable comparison and explicit result contract.
+- Routes and viewports: 4 routes across mobile, tablet, desktop, and large (16 cases).
+- Result: baseline recording succeeded; an unchanged build passed 16/16; a deliberate
+  white-to-black background change failed 16/16 with diffs from 77.13% to 88.98%;
+  the CLI exited with status 1.
+- Classification: true positives and product acceptance evidence.
+- What Lint UI showed: route/viewport-specific percentages, changed-pixel counts,
+  diff image paths, summary totals, and a persisted JSON report.
+- Action taken: restored the deliberate application change after verification.
+- Product insight: a subtle off-white background experiment fell below pixelmatch's
+  configured sensitivity even though raw PNG hashes changed, confirming why pixel
+  sensitivity and maximum changed area must be separate, documented controls.
+- Portfolio relevance: provides reproducible evidence of both the success and failure
+  paths against a real browser rather than mocked-only validation.

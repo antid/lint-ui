@@ -20,14 +20,14 @@ that unimplemented behavior works.
 
 ## M1 — Trustworthy visual regression slice
 
-- [ ] Resolve configured paths relative to the configuration file.
-- [ ] Add deterministic route/viewport case IDs and safe filenames.
-- [ ] Split pixel sensitivity from allowed diff percentage.
-- [ ] Use configured thresholds throughout the runner.
-- [ ] Model missing baselines and dimension mismatches as explicit results.
-- [ ] Guarantee page/browser cleanup with `try/finally`.
-- [ ] Write `report.json` for every completed run.
-- [ ] Test record, unchanged pass, changed fail, missing baseline, dimension change,
+- [x] Resolve configured paths relative to the configuration file.
+- [x] Add deterministic route/viewport case IDs and safe filenames.
+- [x] Split pixel sensitivity from allowed diff percentage.
+- [x] Use configured thresholds throughout the runner.
+- [x] Model missing baselines and dimension mismatches as explicit results.
+- [x] Guarantee page/browser cleanup with `try/finally`.
+- [x] Write `report.json` for every completed run.
+- [x] Test record, unchanged pass, changed fail, missing baseline, dimension change,
       navigation error, and approval.
 
 Exit criteria: the example application exercises the entire CLI-to-artifact flow in

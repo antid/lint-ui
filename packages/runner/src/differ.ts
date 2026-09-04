@@ -6,10 +6,16 @@ export interface DiffResult {
   diffPixels: number;
   diffPercentage: number;
   diffImage: Buffer | null;
+  dimensionsMatch: boolean;
+  reason?: string;
 }
 
 export class VisualDiffer {
-  async compare(baselinePath: string, currentPath: string): Promise<DiffResult> {
+  async compare(
+    baselinePath: string,
+    currentPath: string,
+    pixelThreshold = 0.1,
+  ): Promise<DiffResult> {
     const baseline = PNG.sync.read(fs.readFileSync(baselinePath));
     const current = PNG.sync.read(fs.readFileSync(currentPath));
 
@@ -17,9 +23,13 @@ export class VisualDiffer {
 
     // Ensure dimensions match
     if (current.width !== width || current.height !== height) {
-      throw new Error(
-        `Image dimensions don't match: baseline ${width}x${height}, current ${current.width}x${current.height}`
-      );
+      return {
+        diffPixels: Math.max(width * height, current.width * current.height),
+        diffPercentage: 100,
+        diffImage: null,
+        dimensionsMatch: false,
+        reason: `Image dimensions differ: baseline ${width}x${height}, current ${current.width}x${current.height}`,
+      };
     }
 
     const diff = new PNG({ width, height });
@@ -31,7 +41,7 @@ export class VisualDiffer {
       width,
       height,
       {
-        threshold: 0.1,
+        threshold: pixelThreshold,
         includeAA: false,
       }
     );
@@ -43,6 +53,7 @@ export class VisualDiffer {
       diffPixels,
       diffPercentage,
       diffImage: diffPixels > 0 ? PNG.sync.write(diff) : null,
+      dimensionsMatch: true,
     };
   }
 }

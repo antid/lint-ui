@@ -84,6 +84,10 @@ breakpoints:
     width: 1280
     height: 800
 
+thresholds:
+  pixelThreshold: 0.1
+  maxDiffPercentage: 0.1
+
 disableAnimations: true
 readySelector: '[data-ui-ready="true"]'
 outputDir: .lint-ui
@@ -94,7 +98,7 @@ baselineDir: .ui-baseline
 
 ### Visual Regression
 - Pixel-perfect screenshot comparison
-- Pixel comparison with the current built-in thresholds
+- Configurable pixel sensitivity and maximum changed-pixel percentage
 - Multiple breakpoints (mobile, tablet, desktop, large)
 
 Layout and accessibility modules are present but are not part of `lint-ui run` yet.

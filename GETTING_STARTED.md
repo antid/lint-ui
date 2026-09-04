@@ -107,13 +107,16 @@ breakpoints:
     width: 1280
     height: 800
 
+thresholds:
+  pixelThreshold: 0.1
+  maxDiffPercentage: 0.1
 ```
 
 ## What Gets Checked
 
 ### Visual Regression
 - Screenshot comparison across breakpoints
-- Pixel comparison using the current built-in threshold
+- Configurable pixel sensitivity and maximum changed-pixel percentage
 - Diff images generated for failures
 
 Layout and accessibility checks are planned for v1 and are not executed by the

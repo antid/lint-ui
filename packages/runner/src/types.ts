@@ -19,6 +19,10 @@ export interface Config {
   outputDir: string;
   baselineDir: string;
   ignoreSelectors?: string[];
+  thresholds: {
+    pixelThreshold: number;
+    maxDiffPercentage: number;
+  };
 }
 
 export interface ScreenshotResult {
@@ -31,13 +35,15 @@ export interface ScreenshotResult {
 export interface TestResult {
   route: string;
   breakpoint: string;
-  status: 'passed' | 'failed';
+  status: 'passed' | 'failed' | 'missing-baseline' | 'error';
   passed: boolean;
   visualDiff?: {
     diffPixels: number;
     diffPercentage: number;
     diffImagePath: string;
+    reason?: string;
   };
+  errorMessage?: string;
   layoutIssues?: Array<{
     type: string;
     message: string;

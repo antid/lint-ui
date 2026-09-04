@@ -1,4 +1,4 @@
-baseUrl: http://localhost:4173
+baseUrl: http://127.0.0.1:4173
 
 routes:
   - path: /
@@ -23,6 +23,10 @@ breakpoints:
   - name: large
     width: 1440
     height: 900
+
+thresholds:
+  pixelThreshold: 0.1
+  maxDiffPercentage: 0.1
 
 disableAnimations: true
 readySelector: '[data-ui-ready="true"]'

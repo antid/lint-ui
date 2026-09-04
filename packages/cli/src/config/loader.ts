@@ -15,7 +15,14 @@ export class ConfigLoader {
     const rawConfig = YAML.parse(content);
 
     try {
-      return ConfigSchema.parse(rawConfig);
+      const config = ConfigSchema.parse(rawConfig);
+      const configDirectory = path.dirname(fullPath);
+
+      return {
+        ...config,
+        outputDir: path.resolve(configDirectory, config.outputDir),
+        baselineDir: path.resolve(configDirectory, config.baselineDir),
+      };
     } catch (error) {
       throw new Error(`Invalid configuration: ${error}`);
     }
@@ -41,6 +48,10 @@ breakpoints:
   - name: large
     width: 1440
     height: 900
+
+thresholds:
+  pixelThreshold: 0.1
+  maxDiffPercentage: 0.1
 
 disableAnimations: true
 readySelector: '[data-ui-ready="true"]'
