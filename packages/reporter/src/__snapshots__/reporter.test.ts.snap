@@ -1,0 +1,87 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Reporter.generateHtml > matches the committed golden snapshot 1`] = `
+"<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Lint UI Report</title>
+<style>
+body { font-family: system-ui, sans-serif; margin: 2rem; color: #1f2937; }
+.summary { display: flex; gap: 1rem; flex-wrap: wrap; margin: 1rem 0; }
+.badge { padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.875rem; }
+.passed { background: #d1fae5; } .failed { background: #fee2e2; }
+.missing-baseline { background: #fef3c7; } .error { background: #fee2e2; }
+.filters { display: flex; gap: 1rem; flex-wrap: wrap; margin: 1rem 0; padding: 1rem; background: #f9fafb; }
+.case { border: 1px solid #e5e7eb; border-radius: 0.5rem; padding: 1rem; margin-bottom: 1rem; }
+.images { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+.images img { width: 100%; border: 1px solid #e5e7eb; }
+.img-missing { padding: 2rem; background: #f3f4f6; text-align: center; color: #6b7280; }
+.finding { margin: 0.5rem 0; } .guidance { color: #4b5563; font-size: 0.875rem; }
+code { background: #f3f4f6; padding: 0 0.25rem; }
+</style>
+</head>
+<body>
+<h1>Lint UI Report</h1>
+<p>Generated 2024-09-05T08:40:00.000Z — 1 passed, 2 failed (3 total).</p>
+<div class="summary">
+<span class="badge failed">failed: 1</span>
+<span class="badge passed">passed: 1</span>
+<span class="badge error">error: 1</span>
+</div>
+<div class="filters">
+
+      <label>Status <select id="f-status" onchange="applyFilters()">
+        <option value="all">All</option>
+        <option value="failed">failed</option><option value="passed">passed</option><option value="error">error</option>
+      </select></label>
+
+      <label>Route <select id="f-route" onchange="applyFilters()">
+        <option value="all">All</option>
+        <option value="/">/</option><option value="/dashboard">/dashboard</option><option value="/settings">/settings</option>
+      </select></label>
+
+      <label>Viewport <select id="f-viewport" onchange="applyFilters()">
+        <option value="all">All</option>
+        <option value="desktop">desktop</option><option value="mobile">mobile</option>
+      </select></label>
+
+      <label>Category <select id="f-category" onchange="applyFilters()">
+        <option value="all">All</option>
+        <option value="visual">visual</option><option value="layout">layout</option><option value="a11y">a11y</option>
+      </select></label>
+</div>
+<section class="case" data-status="failed" data-route="/dashboard" data-viewport="mobile" data-cats="visual layout a11y">
+<h2>/dashboard @ mobile <span class="badge failed">failed</span></h2>
+<p>Visual change: 12.50% (120 pixels).</p>
+<div class="images"><figure><img loading="lazy" alt="Baseline" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==" /><figcaption>Baseline</figcaption></figure><figure><img loading="lazy" alt="Current" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==" /><figcaption>Current</figcaption></figure><figure><img loading="lazy" alt="Diff" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==" /><figcaption>Diff</figcaption></figure></div>
+<p class="finding">❌ [horizontal-overflow] Horizontal overflow detected in DIV.wide at <code>DIV.wide</code> bounds <code>0,0 2000x600</code><br /><span class="guidance">Constrain the element width (max-width: 100%), allow wrapping, or move it into normal flow.</span></p>
+<p class="finding">❌ [color-contrast] (serious) Elements must meet minimum contrast — 2 nodes <code>.button</code> <a href="https://dequeuniversity.com/rules/axe/4.8/color-contrast">Help</a></p>
+<p>Exclusions applied: rules [region], selectors []</p>
+</section>
+<section class="case" data-status="passed" data-route="/" data-viewport="desktop" data-cats="">
+<h2>/ @ desktop <span class="badge passed">passed</span></h2>
+<div class="images"><figure><img loading="lazy" alt="Baseline" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==" /><figcaption>Baseline</figcaption></figure><figure><img loading="lazy" alt="Current" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==" /><figcaption>Current</figcaption></figure><figure><div class="img-missing">No visual change</div><figcaption>Diff</figcaption></figure></div>
+</section>
+<section class="case" data-status="error" data-route="/settings" data-viewport="mobile" data-cats="">
+<h2>/settings @ mobile <span class="badge error">error</span></h2>
+<p>Execution error: &lt;script&gt;alert(1)&lt;/script&gt;</p>
+</section>
+<script>
+function applyFilters() {
+  const status = document.getElementById('f-status').value;
+  const route = document.getElementById('f-route').value;
+  const viewport = document.getElementById('f-viewport').value;
+  const category = document.getElementById('f-category').value;
+  document.querySelectorAll('.case').forEach(el => {
+    const ok = (status === 'all' || el.dataset.status === status)
+      && (route === 'all' || el.dataset.route === route)
+      && (viewport === 'all' || el.dataset.viewport === viewport)
+      && (category === 'all' || el.dataset.cats.split(' ').includes(category));
+    el.style.display = ok ? '' : 'none';
+  });
+}
+</script>
+</body>
+</html>"
+`;

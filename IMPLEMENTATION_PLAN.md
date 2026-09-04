@@ -60,12 +60,12 @@ identify an actionable selector and rule.
 
 ## M4 — Review experience
 
-- [ ] Produce a self-contained HTML report from the JSON result.
-- [ ] Show baseline, current, and diff images together.
-- [ ] Filter results by status, route, viewport, and category.
-- [ ] Include selectors, bounds, help links, and concise remediation guidance.
-- [ ] Keep terminal output brief and CI-friendly.
-- [ ] Add golden/snapshot tests for report generation.
+- [x] Produce a self-contained HTML report from the JSON result.
+- [x] Show baseline, current, and diff images together.
+- [x] Filter results by status, route, viewport, and category.
+- [x] Include selectors, bounds, help links, and concise remediation guidance.
+- [x] Keep terminal output brief and CI-friendly.
+- [x] Add golden/snapshot tests for report generation.
 
 Exit criteria: a developer can locate the source of a seeded failure from the report
 without reading raw logs.
