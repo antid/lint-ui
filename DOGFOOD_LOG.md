@@ -10,8 +10,8 @@ Update these totals as evidence accumulates.
 | Metric | Current |
 | --- | ---: |
 | Real projects integrated | 1 |
-| UI work sessions observed | 1 |
-| Runs completed | 9 |
+| UI work sessions observed | 2 |
+| Runs completed | 19 |
 | True positives | 4 |
 | False positives | 3 |
 | False negatives | 0 |
@@ -90,6 +90,39 @@ Copy this section for each session.
   `.lint-ui/report.json` and `.lint-ui/report.html` in that project.
 - Portfolio relevance: first real-project use found an accessibility defect and a
   concrete rule-noise boundary, validating the dogfooding loop.
+
+### 2026-09-04 — Antid Portfolio v9 stable-capture follow-up
+
+- Project and branch: `antid-website-v9`, `antid/new-concept` (React 18 + Vite).
+- Product change being tested: unchanged Mercury portfolio and Codiga case-study
+  captures after stabilizing Motion-driven animations.
+- Lint UI version/commit: local `docs-plan-reconciliation` worktree, with the
+  capture-stabilization patch under test.
+- Routes and viewports: `/` and `/case-studies/codiga` at 375×812, 768×1024,
+  and 1440×900 (six cases).
+- Run duration: ten six-case runs in two five-run repeat sets.
+- Result: all ten runs passed with zero visual diffs. The final five runs also
+  had zero layout and accessibility findings across all six cases.
+- Classification: repeatability fix and two true-positive semantic findings.
+- What Lint UI showed: the runner's CSS animation suppression did not settle
+  Motion's Web Animations API state. Finishing active document animations and
+  waiting for two paint frames eliminated the unchanged case-study diffs. Once
+  capture was stable, axe consistently reported only `landmark-one-main` and
+  `region` (moderate) on the case-study route; the earlier serious contrast
+  reports did not reproduce.
+- What manual inspection showed: `CaseStudy` used generic containers for both
+  the fixed navigation and page content, so the landmark results were valid.
+- Action taken in the application: changed the fixed controls to a `header` and
+  wrapped the case-study content in a `main` landmark. The final five runs
+  cleared both findings without changing visual baselines.
+- Action taken in Lint UI: added a bounded capture step that finishes active
+  Web Animations API animations and waits for two animation frames before rules
+  or screenshots; added focused runner regression coverage.
+- Evidence paths or links: `antid-website-v9/.lint-ui/report.json`; the focused
+  runner suite (17 tests) and runner TypeScript build both pass.
+- Portfolio relevance: demonstrates that a real app exposed a gap in generic
+  capture controls, leading to a narrow product fix and a verified semantic
+  repair before baseline stability was claimed.
 
 ## Decision log
 

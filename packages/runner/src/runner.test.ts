@@ -352,6 +352,52 @@ describe('screenshotFilename', () => {
     );
   });
 
+  it('finishes active Web Animations before validation and capture', async () => {
+    const directory = mkdtempSync(join(tmpdir(), 'lint-ui-runner-'));
+    const fixture = testRunner(directory);
+    fixture.config.disableAnimations = true;
+    const finish = vi.fn();
+    const originalDocument = globalThis.document;
+    const originalRequestAnimationFrame = globalThis.requestAnimationFrame;
+
+    fixture.page.evaluate = vi.fn(async callback => {
+      if (callback.toString().includes('document.getAnimations')) {
+        Object.defineProperty(globalThis, 'document', {
+          configurable: true,
+          value: {
+            getAnimations: () => [
+              { playState: 'running', finish },
+              { playState: 'finished', finish: vi.fn() },
+            ],
+          },
+        });
+        Object.defineProperty(globalThis, 'requestAnimationFrame', {
+          configurable: true,
+          value: (frame: FrameRequestCallback) => {
+            frame(0);
+            return 0;
+          },
+        });
+        try {
+          await callback();
+        } finally {
+          Object.defineProperty(globalThis, 'document', {
+            configurable: true,
+            value: originalDocument,
+          });
+          Object.defineProperty(globalThis, 'requestAnimationFrame', {
+            configurable: true,
+            value: originalRequestAnimationFrame,
+          });
+        }
+      }
+    }) as unknown as Page['evaluate'];
+
+    await fixture.runner.runChecks();
+
+    expect(finish).toHaveBeenCalledOnce();
+  });
+
   it('fails when the visual change exceeds the configured maximum', async () => {
     const directory = mkdtempSync(join(tmpdir(), 'lint-ui-runner-'));
     const { runner, config } = testRunner(directory);

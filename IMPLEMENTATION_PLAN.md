@@ -74,7 +74,7 @@ without reading raw logs.
 
 - [x] Choose the first real application and record its context in `DOGFOOD_LOG.md`.
 - [x] Add representative routes and mobile/tablet/desktop viewports.
-- [ ] Establish stable intentional baselines.
+- [x] Establish stable intentional baselines.
 - [ ] Run locally during at least ten UI work sessions.
 - [ ] Add a non-blocking CI job, then promote it to blocking after stabilization.
 - [ ] Classify every finding and record product changes prompted by usage.

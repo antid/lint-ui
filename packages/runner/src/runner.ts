@@ -291,6 +291,27 @@ export class Runner {
         }
       }
 
+      // CSS animation suppression does not settle animations driven through
+      // the Web Animations API (for example Framer Motion). Finish every
+      // active document animation before evaluating rules or taking the
+      // screenshot, then wait for the resulting styles to paint.
+      if (this.config.disableAnimations) {
+        await page.evaluate(async () => {
+          for (const animation of document.getAnimations()) {
+            if (animation.playState === 'running') {
+              try {
+                animation.finish();
+              } catch {
+                // An animation may become idle between enumeration and finish.
+              }
+            }
+          }
+
+          await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+          await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+        });
+      }
+
       // Layout validation shares this page session so findings describe the
       // exact state that was screenshotted.
       const layoutIssues = await this.layoutValidator.checkAll(page);
