@@ -18,6 +18,12 @@ function setup(): { config: Config; filename: string } {
       imageTimeoutMs: 10000,
       maskSelectors: [],
     },
+    accessibility: {
+      enabled: false,
+      failImpacts: ['critical', 'serious'],
+      excludeRules: [],
+      excludeSelectors: [],
+    },
     disableAnimations: true,
     outputDir: join(directory, 'output'),
     baselineDir: join(directory, 'baseline'),

@@ -1,8 +1,10 @@
 export { Runner, screenshotFilename } from './runner.js';
 export { VisualDiffer } from './differ.js';
 export type {
+  AccessibilityConfig,
   Breakpoint,
   Config,
+  ExclusionsApplied,
   Route,
   RunResults,
   ScreenshotResult,

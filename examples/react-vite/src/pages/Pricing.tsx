@@ -5,7 +5,7 @@ export default function Pricing() {
       
       <div className="grid grid-3">
         <div className="card" style={{ textAlign: 'center' }}>
-          <h3 style={{ marginBottom: '1rem' }}>Free</h3>
+          <h2 style={{ marginBottom: '1rem' }}>Free</h2>
           <div style={{ fontSize: '2.5rem', fontWeight: '700', marginBottom: '1rem' }}>
             $0
             <span style={{ fontSize: '1rem', fontWeight: '400', color: 'var(--color-text-light)' }}>
@@ -34,7 +34,7 @@ export default function Pricing() {
           }}>
             POPULAR
           </div>
-          <h3 style={{ marginBottom: '1rem' }}>Pro</h3>
+          <h2 style={{ marginBottom: '1rem' }}>Pro</h2>
           <div style={{ fontSize: '2.5rem', fontWeight: '700', marginBottom: '1rem' }}>
             $49
             <span style={{ fontSize: '1rem', fontWeight: '400', color: 'var(--color-text-light)' }}>
@@ -52,7 +52,7 @@ export default function Pricing() {
         </div>
 
         <div className="card" style={{ textAlign: 'center' }}>
-          <h3 style={{ marginBottom: '1rem' }}>Enterprise</h3>
+          <h2 style={{ marginBottom: '1rem' }}>Enterprise</h2>
           <div style={{ fontSize: '2.5rem', fontWeight: '700', marginBottom: '1rem' }}>
             Custom
           </div>

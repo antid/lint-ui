@@ -51,8 +51,8 @@ and CI runs.
 - [x] Integrate horizontal overflow detection.
 - [x] Refine and integrate clipped-text detection using dedicated fixtures.
 - [x] Add visible horizontal out-of-bounds detection.
-- [ ] Integrate axe-core with impact-level failure policy.
-- [ ] Add rule and selector exclusions with evidence in the result.
+- [x] Integrate axe-core with impact-level failure policy.
+- [x] Add rule and selector exclusions with evidence in the result.
 - [x] Add a fixture page for every passing and failing rule state.
 
 Exit criteria: deliberate defects are detected, clean controls pass, and findings

@@ -94,6 +94,12 @@ capture:
   imageTimeoutMs: 10000
   maskSelectors: []
 
+accessibility:
+  enabled: true
+  failImpacts: [critical, serious]
+  excludeRules: []
+  excludeSelectors: []
+
 disableAnimations: true
 readySelector: '[data-ui-ready="true"]'
 outputDir: .lint-ui
@@ -107,9 +113,10 @@ baselineDir: .ui-baseline
 - Configurable pixel sensitivity and maximum changed-pixel percentage
 - Multiple breakpoints (mobile, tablet, desktop, large)
 
-Layout checks run as part of `lint-ui run`: horizontal overflow, horizontal
-out-of-bounds elements (both fail the case), plus clipped-text and off-screen
-warnings. Accessibility checks are planned for v1 and are not executed yet.
+Layout checks run as part of `lint-ui run`: horizontal overflow and horizontal
+out-of-bounds elements fail the case; clipped text is reported as a warning.
+Accessibility checks (axe-core, failing on critical and serious impacts by
+default) also run as part of `lint-ui run` and can be tuned per project.
 See [the v1 specification](V1_SPEC.md) and
 [implementation plan](IMPLEMENTATION_PLAN.md) for their acceptance criteria.
 

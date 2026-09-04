@@ -1,5 +1,17 @@
 import type { AccessibilityViolation, LayoutIssue } from '@lint-ui/rules';
 
+export interface AccessibilityConfig {
+  enabled: boolean;
+  failImpacts: Array<AccessibilityViolation['impact']>;
+  excludeRules: string[];
+  excludeSelectors: string[];
+}
+
+export interface ExclusionsApplied {
+  rules: string[];
+  selectors: string[];
+}
+
 export interface Breakpoint {
   name: string;
   width: number;
@@ -31,6 +43,7 @@ export interface Config {
     imageTimeoutMs: number;
     maskSelectors: string[];
   };
+  accessibility: AccessibilityConfig;
 }
 
 export interface ScreenshotResult {
@@ -39,6 +52,7 @@ export interface ScreenshotResult {
   path: string;
   timestamp: number;
   layoutIssues: LayoutIssue[];
+  accessibilityViolations: AccessibilityViolation[];
 }
 
 export interface TestResult {
@@ -55,6 +69,7 @@ export interface TestResult {
   errorMessage?: string;
   layoutIssues?: LayoutIssue[];
   accessibilityViolations?: AccessibilityViolation[];
+  exclusionsApplied?: ExclusionsApplied;
 }
 
 export interface RunResults {

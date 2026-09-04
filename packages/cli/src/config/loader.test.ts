@@ -97,6 +97,23 @@ describe('ConfigLoader', () => {
     });
   });
 
+  it('loads accessibility policy and applies its defaults', async () => {
+    const configPath = join(temporaryDirectory(), 'lint-ui.yml');
+    writeFileSync(
+      configPath,
+      'baseUrl: http://localhost:4173\nroutes:\n  - path: /\naccessibility:\n  failImpacts: [critical]\n  excludeRules: [color-contrast]\n',
+    );
+
+    const config = await ConfigLoader.load(configPath);
+
+    expect(config.accessibility).toEqual({
+      enabled: true,
+      failImpacts: ['critical'],
+      excludeRules: ['color-contrast'],
+      excludeSelectors: [],
+    });
+  });
+
   it('rejects duplicate routes and breakpoints', async () => {
     const configPath = join(temporaryDirectory(), 'lint-ui.yml');
     writeFileSync(

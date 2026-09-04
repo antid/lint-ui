@@ -5,7 +5,7 @@ export default function Dashboard() {
       
       <div className="grid grid-2">
         <div className="card">
-          <h3>Total Tests</h3>
+          <h2>Total Tests</h2>
           <p style={{ fontSize: '2rem', fontWeight: '700', color: 'var(--color-primary)' }}>
             156
           </p>
@@ -13,7 +13,7 @@ export default function Dashboard() {
         </div>
 
         <div className="card">
-          <h3>Pass Rate</h3>
+          <h2>Pass Rate</h2>
           <p style={{ fontSize: '2rem', fontWeight: '700', color: 'var(--color-success)' }}>
             98.7%
           </p>

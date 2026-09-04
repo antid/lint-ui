@@ -57,6 +57,7 @@ Record decisions that affect the product contract.
 | 2026-09-04 | Keep v1 intentionally narrow. | Configuration and documentation currently advertise several behaviors that execution ignores. | Unimplemented variants, changed-route analysis, hosted review, and design-token enforcement remain explicit non-goals. |
 | 2026-09-04 | Defer authenticated flows past v1. | V1_SPEC listed storage-state login as supported while configuration rejects `auth` as unimplemented. | Supported scope is public pages only; storage-state login is an explicit non-goal until a milestone schedules it. |
 | 2026-09-04 | Keep the v1 layout set to overflow, out-of-bounds, and clipping. | Broader heuristics (overlap, target size, breakpoint visibility) have no fixtures, thresholds, or noise evidence. | Overlap, minimum-target-size, and breakpoint-visibility heuristics are explicit non-goals for v1. |
+| 2026-09-04 | Exclude below-fold flagging from the offscreen check scope. | Wiring all layout checks into the runner flagged reachable below-fold buttons as offscreen warnings on mobile. | checkOffscreenElements stays unwired; v1 ships overflow, out-of-bounds, and clipping only. |
 
 ## Baseline repository audit — 2026-09-04
 
@@ -110,3 +111,26 @@ the defects are fixed.
   sensitivity and maximum changed area must be separate, documented controls.
 - Portfolio relevance: provides reproducible evidence of both the success and failure
   paths against a real browser rather than mocked-only validation.
+
+### 2026-09-04 — axe-core catches real defects in the demo app
+
+- Project and branch: bundled React/Vite example on `m3-axe`.
+- Product change being tested: wiring axe-core into `lint-ui run` with critical/serious fail policy.
+- Routes and viewports: 4 routes across mobile, tablet, desktop, and large (16 cases).
+- Run duration: full gate (record + run) a few minutes locally.
+- Result: first run failed with `color-contrast` (serious) on brand text, buttons,
+  and a pricing badge, plus `heading-order` (moderate) from skipped heading levels.
+- Classification: true positives.
+- What Lint UI showed: rule ID, impact, description, node count, and an example
+  selector per violation, per route and viewport.
+- What manual inspection showed: `#3b82f6`/`#8b5cf6`/`#10b981` fail 4.5:1 on white;
+  Dashboard and Pricing jumped from `h1` to `h3`.
+- Action taken in the application: darkened primary/secondary/success palette
+  variables and corrected headings to `h2`.
+- Action taken in Lint UI: refined the clipping check (ellipsis skip, document
+  structure skip after a scrolled-page false positive) and left the noisy
+  below-fold offscreen check unwired.
+- Evidence paths or links: PR for the M3 axe slice; local `report.json` showed
+  16/16 passing with zero findings after the fixes.
+- Portfolio relevance: first case of the tool finding genuine defects in its own
+  demo target before any external dogfooding.

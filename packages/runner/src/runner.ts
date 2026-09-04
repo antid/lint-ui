@@ -4,7 +4,7 @@ import * as path from 'path';
 import { createHash } from 'node:crypto';
 import type { Config, ScreenshotResult, TestResult, RunResults, Route } from './types.js';
 import { VisualDiffer } from './differ.js';
-import { LayoutValidator } from '@lint-ui/rules';
+import { AccessibilityValidator, LayoutValidator } from '@lint-ui/rules';
 
 // Total capture attempts per route/viewport case: one try plus one retry.
 // Deliberately not configurable: retries exist only to absorb known transient
@@ -24,6 +24,7 @@ export class Runner {
   private launchBrowser: () => Promise<Browser>;
   private createDiffer: () => VisualDiffer;
   private layoutValidator = new LayoutValidator();
+  private accessibilityValidator = new AccessibilityValidator();
 
   constructor(
     config: Config,
@@ -82,14 +83,37 @@ export class Runner {
             const screenshot = await this.captureWithRetry(route, breakpoint);
             fs.copyFileSync(screenshot.path, currentPath);
 
+            const excludedRules = new Set(this.config.accessibility.excludeRules);
+            const accessibilityViolations = screenshot.accessibilityViolations.filter(
+              violation => !excludedRules.has(violation.id),
+            );
+            const suppressedRules = [
+              ...new Set(
+                screenshot.accessibilityViolations
+                  .filter(violation => excludedRules.has(violation.id))
+                  .map(violation => violation.id),
+              ),
+            ];
+
             const result: TestResult = {
               route: route.path,
               breakpoint: breakpoint.name,
               status: 'passed',
               passed: true,
               layoutIssues: screenshot.layoutIssues,
-              accessibilityViolations: [],
+              accessibilityViolations,
             };
+
+            if (
+              this.config.accessibility.enabled &&
+              (suppressedRules.length > 0 ||
+                this.config.accessibility.excludeSelectors.length > 0)
+            ) {
+              result.exclusionsApplied = {
+                rules: suppressedRules,
+                selectors: [...this.config.accessibility.excludeSelectors],
+              };
+            }
 
             if (!fs.existsSync(baselinePath)) {
               result.status = 'missing-baseline';
@@ -127,6 +151,15 @@ export class Runner {
               issue => issue.severity === 'error',
             );
             if (layoutErrors.length > 0) {
+              result.status = 'failed';
+              result.passed = false;
+            }
+
+            // Accessibility failures follow the configured impact policy.
+            const failingViolations = (result.accessibilityViolations ?? []).filter(
+              violation => this.config.accessibility.failImpacts.includes(violation.impact),
+            );
+            if (this.config.accessibility.enabled && failingViolations.length > 0) {
               result.status = 'failed';
               result.passed = false;
             }
@@ -257,6 +290,15 @@ export class Runner {
       // exact state that was screenshotted.
       const layoutIssues = await this.layoutValidator.checkAll(page);
 
+      // Accessibility validation shares this page session too. Selector
+      // exclusions are applied inside axe; rule exclusions are applied by
+      // the caller so they can be recorded as evidence.
+      const accessibilityViolations = this.config.accessibility.enabled
+        ? await this.accessibilityValidator.runAxe(page, {
+            excludeSelectors: this.config.accessibility.excludeSelectors,
+          })
+        : [];
+
       const filename = screenshotFilename(route.path, breakpoint.name);
       const screenshotPath = path.join(this.config.outputDir, 'temp', filename);
       
@@ -277,6 +319,7 @@ export class Runner {
         path: screenshotPath,
         timestamp: Date.now(),
         layoutIssues,
+        accessibilityViolations,
       };
     } finally {
       await page.close();

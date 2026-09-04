@@ -83,9 +83,10 @@ jobs:
         with:
           path: examples/react-vite/.ui-baseline
           # restore-only (never post-saves): PR jobs must not write the shared
-          # bucket. v1 prefix abandons the poisoned entry saved under the old
-          # key by earlier failed runs (cache keys are immutable).
-          key: ui-baseline-v1-${{ github.base_ref || github.ref_name }}
+          # bucket. v2 prefix abandons the v1 bucket: the example app visuals
+          # changed intentionally (a11y contrast and heading fixes), so old
+          # baselines no longer match. Cache keys are immutable.
+          key: ui-baseline-v2-${{ github.base_ref || github.ref_name }}
       
       - name: Record baseline (if not cached)
         if: steps.baseline-cache.outputs.cache-hit != 'true'
@@ -135,7 +136,7 @@ jobs:
           path: examples/react-vite/.ui-baseline
           # Must equal the restore key above (ref_name is bare "main",
           # without the refs/heads/ prefix the old key used).
-          key: ui-baseline-v1-${{ github.ref_name }}
+          key: ui-baseline-v2-${{ github.ref_name }}
       
       - name: Comment PR
         if: github.event_name == 'pull_request' && always()
