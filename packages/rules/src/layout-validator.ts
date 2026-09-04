@@ -90,6 +90,7 @@ export class LayoutValidator {
 
     for (const el of clippedElements) {
       issues.push({
+        ruleId: 'clipped-text',
         type: 'clipping',
         message: `Text clipping detected in ${el.tag}${el.class ? `.${el.class.split(' ')[0]}` : ''}`,
         severity: 'warning',
@@ -131,6 +132,7 @@ export class LayoutValidator {
 
     for (const el of offscreenElements) {
       issues.push({
+        ruleId: 'offscreen-element',
         type: 'offscreen',
         message: `Important element (${el.tag}) is off-screen: "${el.text}"`,
         severity: 'warning',
