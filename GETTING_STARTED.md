@@ -171,9 +171,9 @@ accessibility:
 A GitHub Actions workflow is provided in `.github/workflows/lint-ui.yml`.
 
 Key features:
-- Runs on PRs and main branch
+- Runs on pull requests to `main` and pushes to `main`
 - Caches baseline screenshots
-- Posts results as PR comments
+- Attempts to post results as PR comments when the workflow token permits it
 - Uploads artifacts for investigation
 
 ## Next Steps

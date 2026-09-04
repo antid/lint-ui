@@ -1,13 +1,14 @@
 # Lint UI GitHub Actions Workflow
 
-This workflow runs Lint UI checks on every pull request and push to main.
+This example workflow runs Lint UI checks on pull requests to `main` and pushes to
+`main`.
 
 ## Features
 
 - ✅ Automatically builds and tests your app
 - 📸 Compares screenshots against baseline
 - 💾 Caches baseline screenshots for faster runs
-- 📊 Posts results as PR comments
+- 📊 Attempts to post a results summary as a PR comment
 - 🎯 Uploads artifacts for investigation
 
 ## Setup
@@ -39,12 +40,13 @@ This workflow runs Lint UI checks on every pull request and push to main.
 5. **Download Baseline**: Gets cached baseline screenshots
 6. **Run Tests**: Executes Lint UI checks
 7. **Upload Results**: Saves artifacts
-8. **Comment PR**: Posts results to PR
+8. **Comment PR**: Attempts to post a results summary to the PR; fork PRs may have
+   a read-only token
 9. **Cache Baseline**: Updates baseline on main branch
 
 ## Viewing Results
 
-- **PR Comments**: See summary in PR comments
+- **PR Comments**: See the summary when the workflow token can create comments
 - **Artifacts**: Download full results from Actions tab
 - **Diff Images**: View visual differences in artifacts
 
@@ -56,8 +58,7 @@ Edit `lint-ui.yml` in your project root
 ### Adjust thresholds
 Modify `thresholds` in `lint-ui.yml`
 
-### Add authentication
-Configure `auth` section in `lint-ui.yml`
-
-### Test only changed routes
-Add `--changed-only` flag to run command
+### Tune capture and checks
+Adjust the documented `capture`, `accessibility`, `disableAnimations`, and
+`readySelector` settings in `lint-ui.yml`. Authentication and `--changed-only`
+route analysis are not supported in v1.

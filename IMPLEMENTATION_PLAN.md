@@ -86,10 +86,11 @@ acceptable noise level and documented evidence.
 ## M6 — External usability and release
 
 - [ ] Finalize package/binary naming and verify registry availability.
-- [ ] Support installation and execution outside the monorepo.
+- [x] Add a CI smoke test that deploys the built workspace CLI outside the monorepo.
+- [ ] Verify registry-style installation and execution through the installed `lint-ui`
+      binary.
 - [x] Document Playwright browser installation clearly.
 - [x] Test macOS, Linux, and GitHub Actions.
-- [ ] Test macOS, Linux, and GitHub Actions.
 - [ ] Add release notes and automated package validation.
 - [ ] Ask at least one external developer to complete the first-run flow.
 - [ ] Publish the first usable prerelease.
