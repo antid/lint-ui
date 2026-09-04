@@ -107,29 +107,17 @@ breakpoints:
     width: 1280
     height: 800
 
-rules:
-  checkOverflow: true
-  checkClipping: true
-  checkAccessibility: true
 ```
 
 ## What Gets Checked
 
 ### Visual Regression
 - Screenshot comparison across breakpoints
-- Configurable pixel diff threshold
+- Pixel comparison using the current built-in threshold
 - Diff images generated for failures
 
-### Layout Validation
-- **Horizontal Overflow**: Detects elements extending beyond viewport
-- **Text Clipping**: Finds text that's cut off
-- **Offscreen Elements**: Identifies important elements outside viewport
-
-### Accessibility
-- Built-in axe-core integration
-- WCAG compliance checks
-- Color contrast validation
-- Missing ARIA labels
+Layout and accessibility checks are planned for v1 and are not executed by the
+current runner.
 
 ## Output Structure
 
@@ -155,9 +143,7 @@ Key features:
 
 1. **Customize Routes**: Edit `lint-ui.yml` to test your app's routes
 2. **Add Breakpoints**: Define custom viewport sizes
-3. **Configure Rules**: Enable/disable specific checks
-4. **Set Thresholds**: Adjust sensitivity for visual diffs
-5. **Integrate CI**: Copy the workflow to your repository
+3. **Integrate CI**: Adapt the workflow to your repository
 
 ## Development
 
@@ -205,9 +191,7 @@ Check that `baseUrl` in config matches your running server
 ## Tips
 
 - Use `readySelector` to wait for data loading
-- Add `ignoreSelectors` for dynamic content (timestamps, ads)
 - Set `disableAnimations: true` for consistent screenshots
-- Use `--changed-only` flag to speed up CI runs (coming soon)
 
 ## Support
 

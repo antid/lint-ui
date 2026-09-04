@@ -31,6 +31,7 @@ export interface ScreenshotResult {
 export interface TestResult {
   route: string;
   breakpoint: string;
+  status: 'passed' | 'failed';
   passed: boolean;
   visualDiff?: {
     diffPixels: number;

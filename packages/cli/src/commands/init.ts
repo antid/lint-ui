@@ -3,6 +3,19 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { ConfigLoader } from '../config/loader.js';
 
+export const DEFAULT_CONFIG_FILENAME = 'lint-ui.yml';
+
+export function initializeConfig(directory: string): { created: boolean; path: string } {
+  const configPath = path.resolve(directory, DEFAULT_CONFIG_FILENAME);
+
+  if (fs.existsSync(configPath)) {
+    return { created: false, path: configPath };
+  }
+
+  fs.writeFileSync(configPath, ConfigLoader.getDefaultConfig(), 'utf-8');
+  return { created: true, path: configPath };
+}
+
 export default class Init extends Command {
   static description = 'Initialize Lint UI configuration';
 
@@ -11,15 +24,12 @@ export default class Init extends Command {
   ];
 
   async run(): Promise<void> {
-    const configPath = path.resolve(process.cwd(), 'ui-guard.yml');
+    const result = initializeConfig(process.cwd());
 
-    if (fs.existsSync(configPath)) {
+    if (!result.created) {
       this.log('⚠️  lint-ui.yml already exists. Skipping.');
       return;
     }
-
-    const defaultConfig = ConfigLoader.getDefaultConfig();
-    fs.writeFileSync(configPath, defaultConfig, 'utf-8');
 
     this.log('✅ Created lint-ui.yml');
     this.log('\nNext steps:');
