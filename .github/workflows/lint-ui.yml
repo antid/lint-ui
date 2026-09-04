@@ -48,12 +48,19 @@ jobs:
         working-directory: examples/react-vite
       
       - name: Start preview server
-        run: pnpm preview &
         working-directory: examples/react-vite
+        run: |
+          nohup pnpm preview -- --host 127.0.0.1 --port 4173 > /tmp/preview.log 2>&1 &
+          echo $! > /tmp/preview.pid
+          sleep 2
       
       - name: Wait for server
         run: |
-          timeout 30 bash -c 'until curl -s http://localhost:4173 > /dev/null; do sleep 1; done'
+          timeout 60 bash -c 'until curl -fs http://127.0.0.1:4173/ > /dev/null; do sleep 1; done' || {
+            echo "Preview server failed to start. Logs:"
+            cat /tmp/preview.log
+            exit 1
+          }
       
       - name: Download baseline screenshots
         uses: actions/cache@v3
