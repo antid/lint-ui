@@ -75,15 +75,21 @@ jobs:
           }
       
       - name: Download baseline screenshots
-        uses: actions/cache@v3
+        uses: actions/cache/restore@v3
         id: baseline-cache
         with:
           path: examples/react-vite/.ui-baseline
-          key: ui-baseline-${{ github.base_ref || 'main' }}
+          # restore-only (never post-saves): PR jobs must not write the shared
+          # bucket. v1 prefix abandons the poisoned entry saved under the old
+          # key by earlier failed runs (cache keys are immutable).
+          key: ui-baseline-v1-${{ github.base_ref || github.ref_name }}
       
       - name: Record baseline (if not cached)
         if: steps.baseline-cache.outputs.cache-hit != 'true'
         run: cd examples/react-vite && node ../../packages/cli/bin/dev.js record
+      
+      - name: List baseline screenshots
+        run: ls -la examples/react-vite/.ui-baseline
       
       - name: Run Lint UI checks
         id: lint-ui
@@ -113,7 +119,9 @@ jobs:
         uses: actions/cache@v3
         with:
           path: examples/react-vite/.ui-baseline
-          key: ui-baseline-${{ github.ref }}
+          # Must equal the restore key above (ref_name is bare "main",
+          # without the refs/heads/ prefix the old key used).
+          key: ui-baseline-v1-${{ github.ref_name }}
       
       - name: Comment PR
         if: github.event_name == 'pull_request' && always()
