@@ -8,9 +8,27 @@ import { LayoutValidator, AccessibilityValidator, type LayoutIssue, type Accessi
 import type { Config } from './types.js';
 import { Runner, screenshotFilename } from './runner.js';
 
-function imageBuffer(): Buffer {
-  const image = new PNG({ width: 1, height: 1 });
-  image.data.set([0, 0, 0, 255]);
+function imageBuffer(rgba: number[] = [0, 0, 0, 255], width = 1, height = 1): Buffer {
+  const image = new PNG({ width, height });
+  for (let offset = 0; offset < image.data.length; offset += 4) {
+    image.data.set(rgba, offset);
+  }
+  return PNG.sync.write(image);
+}
+
+function imageWithPixel(
+  width: number,
+  height: number,
+  x: number,
+  y: number,
+  rgba: number[],
+): Buffer {
+  const image = new PNG({ width, height });
+  for (let py = 0; py < height; py += 1) {
+    for (let px = 0; px < width; px += 1) {
+      image.data.set(px === x && py === y ? rgba : [0, 0, 0, 255], (py * width + px) * 4);
+    }
+  }
   return PNG.sync.write(image);
 }
 
@@ -22,7 +40,11 @@ function timeoutError(message: string): Error {
 
 function testRunner(
   directory: string,
-  options: { navigationError?: Error; transientNavigationErrorOnce?: Error } = {},
+  options: {
+    navigationError?: Error;
+    transientNavigationErrorOnce?: Error;
+    screenshotImage?: Buffer;
+  } = {},
 ) {
   const closePage = vi.fn();
   const closeBrowser = vi.fn();
@@ -38,9 +60,12 @@ function testRunner(
     emulateMedia: vi.fn(),
     goto,
     evaluate: vi.fn(),
+    waitForSelector: vi.fn(),
     waitForFunction: vi.fn(),
     locator: vi.fn(selector => ({ selector })),
-    screenshot: vi.fn(({ path }: { path: string }) => writeFileSync(path, imageBuffer())),
+    screenshot: vi.fn(({ path }: { path: string }) =>
+      writeFileSync(path, options.screenshotImage ?? imageBuffer()),
+    ),
     close: closePage,
   } as unknown as Page;
   const browser = {
@@ -203,6 +228,7 @@ describe('screenshotFilename', () => {
     const directory = mkdtempSync(join(tmpdir(), 'lint-ui-runner-'));
     const { runner, config } = testRunner(directory);
     config.accessibility.enabled = true;
+    config.accessibility.excludeSelectors = ['.ad'];
     const violation: AccessibilityViolation = {
       id: 'color-contrast',
       impact: 'serious',
@@ -226,6 +252,7 @@ describe('screenshotFilename', () => {
       expect(results.results[0]).toMatchObject({ status: 'failed', passed: false });
       expect(results.results[0].accessibilityViolations).toHaveLength(1);
       expect(results.results[0]).not.toHaveProperty('visualDiff');
+      expect(spy).toHaveBeenCalledWith(expect.anything(), { excludeSelectors: ['.ad'] });
     } finally {
       spy.mockRestore();
     }
@@ -323,5 +350,75 @@ describe('screenshotFilename', () => {
     expect(fixture.page.screenshot).toHaveBeenCalledWith(
       expect.objectContaining({ animations: 'disabled', mask: [{ selector: '.timestamp' }] }),
     );
+  });
+
+  it('fails when the visual change exceeds the configured maximum', async () => {
+    const directory = mkdtempSync(join(tmpdir(), 'lint-ui-runner-'));
+    const { runner, config } = testRunner(directory);
+    const filename = screenshotFilename('/', 'mobile');
+    const { mkdirSync } = await import('node:fs');
+    mkdirSync(config.baselineDir, { recursive: true });
+    writeFileSync(join(config.baselineDir, filename), imageBuffer([255, 255, 255, 255]));
+
+    const results = await runner.runChecks();
+
+    expect(results.results[0]).toMatchObject({ status: 'failed', passed: false });
+    expect(results.results[0].visualDiff).toMatchObject({ diffPercentage: 100 });
+    expect(existsSync(join(config.outputDir, 'diff', filename))).toBe(true);
+  });
+
+  it('passes when the visual change stays within the configured maximum', async () => {
+    const directory = mkdtempSync(join(tmpdir(), 'lint-ui-runner-'));
+    const current = imageWithPixel(2, 2, 0, 0, [255, 255, 255, 255]);
+    const { runner, config } = testRunner(directory, { screenshotImage: current });
+    config.thresholds.maxDiffPercentage = 30;
+    const filename = screenshotFilename('/', 'mobile');
+    const { mkdirSync } = await import('node:fs');
+    mkdirSync(config.baselineDir, { recursive: true });
+    writeFileSync(join(config.baselineDir, filename), imageBuffer([0, 0, 0, 255], 2, 2));
+
+    const passing = await runner.runChecks();
+
+    expect(passing.results[0]).toMatchObject({ status: 'passed', passed: true });
+    expect(passing.results[0]).not.toHaveProperty('visualDiff');
+
+    config.thresholds.maxDiffPercentage = 24;
+    const failing = await runner.runChecks();
+
+    expect(failing.results[0]).toMatchObject({ status: 'failed', passed: false });
+    expect(failing.results[0].visualDiff).toMatchObject({ diffPercentage: 25 });
+  });
+
+  it('waits for the ready selector and route selector with the readiness timeout', async () => {
+    const directory = mkdtempSync(join(tmpdir(), 'lint-ui-runner-'));
+    const { runner, config, page } = testRunner(directory);
+    config.readySelector = '[data-ui-ready="true"]';
+    config.routes = [{ path: '/', waitFor: '.loaded' }];
+    config.capture.readinessTimeoutMs = 2345;
+    const filename = screenshotFilename('/', 'mobile');
+    const { mkdirSync } = await import('node:fs');
+    mkdirSync(config.baselineDir, { recursive: true });
+    writeFileSync(join(config.baselineDir, filename), imageBuffer());
+
+    await runner.runChecks();
+
+    expect(page.waitForSelector).toHaveBeenCalledWith('[data-ui-ready="true"]', {
+      timeout: 2345,
+    });
+    expect(page.waitForSelector).toHaveBeenCalledWith('.loaded', { timeout: 2345 });
+  });
+
+  it('skips selector waits for networkidle routes without a ready selector', async () => {
+    const directory = mkdtempSync(join(tmpdir(), 'lint-ui-runner-'));
+    const { runner, config, page } = testRunner(directory);
+    config.routes = [{ path: '/', waitFor: 'networkidle' }];
+    const filename = screenshotFilename('/', 'mobile');
+    const { mkdirSync } = await import('node:fs');
+    mkdirSync(config.baselineDir, { recursive: true });
+    writeFileSync(join(config.baselineDir, filename), imageBuffer());
+
+    await runner.runChecks();
+
+    expect(page.waitForSelector).not.toHaveBeenCalled();
   });
 });
