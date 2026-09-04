@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>out-of-bounds-fail fixture</title>
+  </head>
+  <body>
+    <main>
+      <h1>Out-of-bounds fail</h1>
+      <p>Ordinary page flow around a mispositioned banner.</p>
+    </main>
+    <div class="banner" style="position: absolute; top: 0; left: -60px; width: 200px; height: 50px; background: #eee;">
+      This banner sticks out past the left edge of the viewport.
+    </div>
+  </body>
+</html>

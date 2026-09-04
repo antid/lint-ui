@@ -3,7 +3,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { PNG } from 'pngjs';
 import type { Browser, Page } from 'playwright';
-import { describe, expect, it, vi, type Mock } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import { LayoutValidator, type LayoutIssue } from '@lint-ui/rules';
 import type { Config } from './types.js';
 import { Runner, screenshotFilename } from './runner.js';
 
@@ -162,31 +163,34 @@ describe('screenshotFilename', () => {
 
   it('fails the case when horizontal overflow is detected', async () => {
     const directory = mkdtempSync(join(tmpdir(), 'lint-ui-runner-'));
-    const { runner, config, page } = testRunner(directory);
-    (page.evaluate as unknown as Mock)
-      .mockResolvedValueOnce(undefined)
-      .mockResolvedValueOnce(true)
-      .mockResolvedValueOnce({
-        tag: 'DIV',
-        class: 'wide banner',
-        id: '',
-        x: 0,
-        y: 0,
-        width: 2000,
-        height: 600,
-      });
-    const filename = screenshotFilename('/', 'mobile');
-    const { mkdirSync } = await import('node:fs');
-    mkdirSync(config.baselineDir, { recursive: true });
-    writeFileSync(join(config.baselineDir, filename), imageBuffer());
+    const { runner, config } = testRunner(directory);
+    const overflow: LayoutIssue = {
+      ruleId: 'horizontal-overflow',
+      type: 'overflow',
+      message: 'Horizontal overflow detected in DIV.wide',
+      severity: 'error',
+      element: 'DIV.wide',
+      bounds: { x: 0, y: 0, width: 2000, height: 600 },
+    };
+    const spy = vi
+      .spyOn(LayoutValidator.prototype, 'checkOverflow')
+      .mockResolvedValue([overflow]);
+    try {
+      const filename = screenshotFilename('/', 'mobile');
+      const { mkdirSync } = await import('node:fs');
+      mkdirSync(config.baselineDir, { recursive: true });
+      writeFileSync(join(config.baselineDir, filename), imageBuffer());
 
-    const results = await runner.runChecks();
+      const results = await runner.runChecks();
 
-    expect(results.results[0]).toMatchObject({ status: 'failed', passed: false });
-    expect(results.results[0].layoutIssues).toMatchObject([
-      { ruleId: 'horizontal-overflow', severity: 'error' },
-    ]);
-    expect(results.results[0]).not.toHaveProperty('visualDiff');
+      expect(results.results[0]).toMatchObject({ status: 'failed', passed: false });
+      expect(results.results[0].layoutIssues).toMatchObject([
+        { ruleId: 'horizontal-overflow', severity: 'error' },
+      ]);
+      expect(results.results[0]).not.toHaveProperty('visualDiff');
+    } finally {
+      spy.mockRestore();
+    }
   });
 
   it('applies deterministic capture controls and configured timeouts', async () => {

@@ -49,11 +49,11 @@ and CI runs.
 
 - [x] Introduce a shared rule interface and finding schema.
 - [x] Integrate horizontal overflow detection.
-- [ ] Refine and integrate clipped-text detection using dedicated fixtures.
-- [ ] Add visible horizontal out-of-bounds detection.
+- [x] Refine and integrate clipped-text detection using dedicated fixtures.
+- [x] Add visible horizontal out-of-bounds detection.
 - [ ] Integrate axe-core with impact-level failure policy.
 - [ ] Add rule and selector exclusions with evidence in the result.
-- [ ] Add a fixture page for every passing and failing rule state.
+- [x] Add a fixture page for every passing and failing rule state.
 
 Exit criteria: deliberate defects are detected, clean controls pass, and findings
 identify an actionable selector and rule.

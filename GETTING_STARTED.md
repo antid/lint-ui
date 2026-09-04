@@ -125,7 +125,12 @@ capture:
 - Configurable pixel sensitivity and maximum changed-pixel percentage
 - Diff images generated for failures
 
-Layout and accessibility checks are planned for v1 and are not executed by the
+### Layout Checks
+
+- Horizontal overflow and out-of-bounds elements fail the case
+- Clipped-text and off-screen interactive elements are reported as warnings
+
+Accessibility checks are planned for v1 and are not executed by the
 current runner.
 
 ## Output Structure
