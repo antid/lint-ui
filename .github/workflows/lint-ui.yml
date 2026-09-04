@@ -111,6 +111,12 @@ jobs:
             node ../../packages/cli/bin/dev.js run || exit 1
           done
       
+      - name: External-install smoke test
+        # M6: deploys the built CLI outside the monorepo and runs the full
+        # init/record/run flow from a scratch project. Reuses the preview
+        # server and browsers from the steps above.
+        run: bash .github/scripts/smoke-external-install.sh
+      
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
