@@ -7,6 +7,44 @@ on:
     branches: [main]
 
 jobs:
+  # Fast static checks across operating systems (M6). Browser-dependent E2E
+  # stays in the lint-ui job on Ubuntu; without LINT_UI_BROWSER_TESTS the
+  # fixture tests skip and unit coverage is identical everywhere.
+  static-checks:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build packages
+        run: pnpm build
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Run unit tests
+        run: pnpm test
+
   lint-ui:
     runs-on: ubuntu-latest
     
