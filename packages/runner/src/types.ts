@@ -70,6 +70,9 @@ export interface TestResult {
   layoutIssues?: LayoutIssue[];
   accessibilityViolations?: AccessibilityViolation[];
   exclusionsApplied?: ExclusionsApplied;
+  // Absolute artifact paths captured for this case, when they exist.
+  baselinePath?: string;
+  currentPath?: string;
 }
 
 export interface RunResults {

@@ -1,4 +1,6 @@
 import { Command, Flags } from '@oclif/core';
+import * as fs from 'fs';
+import * as path from 'path';
 import { ConfigLoader } from '../config/loader.js';
 import { Runner } from '@lint-ui/runner';
 import { Reporter } from '@lint-ui/reporter';
@@ -35,9 +37,17 @@ export default class Run extends Command {
       results = await runner.runChecks();
 
       const reporter = new Reporter();
-      const report = reporter.generateMarkdown(results);
+      fs.writeFileSync(
+        path.join(config.outputDir, 'report.md'),
+        reporter.generateMarkdown(results),
+      );
+      fs.writeFileSync(
+        path.join(config.outputDir, 'report.html'),
+        reporter.generateHtml(results),
+      );
 
-      this.log('\n' + report);
+      this.log('\n' + reporter.generateSummary(results));
+      this.log(`\nReports written to ${config.outputDir}/ (report.json, report.md, report.html)`);
 
     } catch (error) {
       this.error(`Failed to run checks: ${error}`, { exit: EXIT_EXECUTION_ERROR });

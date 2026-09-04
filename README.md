@@ -12,6 +12,8 @@ planned for v1 but are not connected to the runner yet.
 - 🎯 **Visual Regression Testing** - Screenshot diffs across multiple breakpoints
 - 📱 **Responsive Coverage** - Capture configured routes at multiple viewport sizes
 - 🧾 **Diff Evidence** - Generate current and pixel-diff images for failures
+- 📄 **Self-contained HTML report** - Filter by status, route, viewport, and
+  category, with remediation guidance for every finding
 - ✅ **Baseline Workflow** - Record and approve intentional visual changes
 - 🚀 **CI Example** - Run the current visual checks in GitHub Actions
 

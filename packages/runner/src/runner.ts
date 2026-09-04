@@ -102,7 +102,12 @@ export class Runner {
               passed: true,
               layoutIssues: screenshot.layoutIssues,
               accessibilityViolations,
+              currentPath,
             };
+
+            if (fs.existsSync(baselinePath)) {
+              result.baselinePath = baselinePath;
+            }
 
             if (
               this.config.accessibility.enabled &&
