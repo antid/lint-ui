@@ -77,8 +77,13 @@ export class LayoutValidator {
 
         const style = window.getComputedStyle(htmlEl);
 
-        // Skip elements that are intentionally scrollable or truncated.
-        if (style.overflow === 'scroll' || style.overflow === 'auto') {
+        // Content that is allowed to overflow vertically is still visible, not
+        // clipped. A taller scrollHeight only establishes clipping when the
+        // element actually constrains vertical overflow.
+        const verticallyScrollable =
+          (style.overflowY === 'auto' || style.overflowY === 'scroll') &&
+          htmlEl.scrollHeight > htmlEl.clientHeight;
+        if (style.overflowY === 'visible' || verticallyScrollable) {
           continue;
         }
         if (style.textOverflow === 'ellipsis') {
@@ -167,6 +172,33 @@ export class LayoutValidator {
         height: number;
       }> = [];
 
+      const isClippedByAncestor = (element: HTMLElement) => {
+        const elementRect = element.getBoundingClientRect();
+        let ancestor = element.parentElement;
+
+        while (ancestor) {
+          const style = window.getComputedStyle(ancestor);
+          const horizontallyScrollable =
+            style.overflowX === 'auto' && ancestor.scrollWidth > ancestor.clientWidth;
+          const clipsHorizontally =
+            style.overflowX === 'hidden' ||
+            style.overflowX === 'clip' ||
+            style.overflowX === 'scroll' ||
+            horizontallyScrollable;
+
+          if (clipsHorizontally) {
+            const ancestorRect = ancestor.getBoundingClientRect();
+            if (elementRect.left < ancestorRect.left || elementRect.right > ancestorRect.right) {
+              return true;
+            }
+          }
+
+          ancestor = ancestor.parentElement;
+        }
+
+        return false;
+      };
+
       for (const el of Array.from(document.querySelectorAll('body *'))) {
         const htmlEl = el as HTMLElement;
         const style = window.getComputedStyle(htmlEl);
@@ -182,6 +214,12 @@ export class LayoutValidator {
 
         const rect = el.getBoundingClientRect();
         if (rect.width === 0 || rect.height === 0) {
+          continue;
+        }
+
+        // Children deliberately clipped by a carousel, scroll container, or
+        // overflow-hidden visual shell are not horizontally stranded content.
+        if (isClippedByAncestor(htmlEl)) {
           continue;
         }
 

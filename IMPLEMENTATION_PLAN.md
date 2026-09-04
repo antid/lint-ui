@@ -72,8 +72,8 @@ without reading raw logs.
 
 ## M5 — Dogfood integration
 
-- [ ] Choose the first real application and record its context in `DOGFOOD_LOG.md`.
-- [ ] Add representative routes and mobile/tablet/desktop viewports.
+- [x] Choose the first real application and record its context in `DOGFOOD_LOG.md`.
+- [x] Add representative routes and mobile/tablet/desktop viewports.
 - [ ] Establish stable intentional baselines.
 - [ ] Run locally during at least ten UI work sessions.
 - [ ] Add a non-blocking CI job, then promote it to blocking after stabilization.

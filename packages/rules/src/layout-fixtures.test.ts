@@ -35,7 +35,13 @@ describe.runIf(process.env.LINT_UI_BROWSER_TESTS === '1')('layout fixtures', () 
     }
   }
 
-  it.each(['overflow-pass.html', 'clipping-pass.html', 'out-of-bounds-pass.html'])(
+  it.each([
+    'overflow-pass.html',
+    'clipping-pass.html',
+    'visible-overflow-pass.html',
+    'out-of-bounds-pass.html',
+    'intentional-horizontal-scroll-pass.html',
+  ])(
     'reports no findings on clean fixture %s',
     async fixture => {
       await expect(ruleIdsFor(fixture)).resolves.toEqual([]);

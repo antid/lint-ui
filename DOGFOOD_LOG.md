@@ -9,14 +9,14 @@ Update these totals as evidence accumulates.
 
 | Metric | Current |
 | --- | ---: |
-| Real projects integrated | 0 |
-| UI work sessions observed | 0 |
-| Runs completed | 0 |
-| True positives | 0 |
-| False positives | 0 |
+| Real projects integrated | 1 |
+| UI work sessions observed | 1 |
+| Runs completed | 9 |
+| True positives | 4 |
+| False positives | 3 |
 | False negatives | 0 |
 | Execution errors | 0 |
-| Real defects prevented | 0 |
+| Real defects prevented | 1 |
 
 ## Evidence classification
 
@@ -46,6 +46,50 @@ Copy this section for each session.
 - Action taken in Lint UI:
 - Evidence paths or links:
 - Portfolio relevance:
+
+### 2026-09-04 — Antid Portfolio v9 initial integration
+
+- Project and branch: `antid-website-v9`, `antid/new-concept` (React 18 + Vite).
+- Product change being tested: initial responsive baseline for the Mercury portfolio.
+- Lint UI version/commit: local `docs-plan-reconciliation` worktree, after M4.
+- Routes and viewports: `/` and `/case-studies/codiga` at 375×812, 768×1024,
+  and 1440×900 (six cases).
+- Run duration: baseline recording 8.5 s; first run 10.8 s; five repeat runs about
+  10 s each.
+- Result: all six baselines recorded. The first run had four passing cases and two
+  homepage failures. Four repeats reproduced that result with no visual diffs; the
+  fifth added a tablet case-study visual diff of 0.108% and semantic findings.
+  After the Lint UI rule refinement and an application accessibility repair, one
+  six-case run passed; the first subsequent repeat again flaked on the mobile
+  case study at 0.24% and exposed the same case-study accessibility findings.
+- Classification: four true positives, three false-positive rule patterns, and a
+  repeatability failure.
+- What Lint UI showed: axe found `scrollable-region-focusable` on the homepage's
+  horizontally scrollable client-logo row. It also reported 20 clipped-text
+  warnings and 45 horizontal-out-of-bounds errors across the two failing
+  viewports, concentrated in that intentionally clipped, horizontally scrollable
+  logo carousel and its descendants.
+- What manual inspection showed: the logo row is intentionally horizontally
+  scrollable below 850 px but cannot receive keyboard focus, so the axe finding is
+  actionable. The row's clipped descendants are intentional, making the two
+  layout-rule patterns noise rather than product defects. The case-study page also
+  lacks a `main` landmark and has two serious color-contrast violations; these are
+  actionable. The unchanged 0.108% visual diff means its baseline is not yet
+  stable enough for CI.
+- Action taken in the application: made the horizontally scrollable logo row
+  keyboard-focusable and named it; the reproducible scrollable-region finding
+  cleared. No exclusions were added. Case-study landmark and contrast repairs
+  remain pending because they are intermittent in the current capture state.
+- Action taken in Lint UI: refined the clipping rule to require constrained
+  vertical overflow and made the out-of-bounds rule ignore descendants clipped
+  by intentional horizontal scroll/clip containers. Browser fixtures cover both
+  guards, and the follow-up real-project run cleared all 65 carousel findings.
+  Investigate why animation disabling/readiness still permits case-study visual
+  diffs before promoting this configuration to CI.
+- Evidence paths or links: `antid-website-v9/lint-ui.yml`; local
+  `.lint-ui/report.json` and `.lint-ui/report.html` in that project.
+- Portfolio relevance: first real-project use found an accessibility defect and a
+  concrete rule-noise boundary, validating the dogfooding loop.
 
 ## Decision log
 
