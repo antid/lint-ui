@@ -184,14 +184,19 @@ body { font-family: system-ui, sans-serif; margin: 2rem; color: #1f2937; }
 .missing-baseline { background: #fef3c7; } .error { background: #fee2e2; }
 .filters { display: flex; gap: 1rem; flex-wrap: wrap; margin: 1rem 0; padding: 1rem; background: #f9fafb; }
 .case { border: 1px solid #e5e7eb; border-radius: 0.5rem; padding: 1rem; margin-bottom: 1rem; }
-.images { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+.images { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
 .images img { width: 100%; border: 1px solid #e5e7eb; }
-.img-missing { padding: 2rem; background: #f3f4f6; text-align: center; color: #6b7280; }
+.img-missing { padding: 1rem; background: #f3f4f6; text-align: center; color: #4b5563; overflow-wrap: anywhere; }
+@media (max-width: 600px) {
+  body { margin: 1rem; }
+  .images { grid-template-columns: 1fr; }
+}
 .finding { margin: 0.5rem 0; } .guidance { color: #4b5563; font-size: 0.875rem; }
 code { background: #f3f4f6; padding: 0 0.25rem; }
 </style>
 </head>
 <body>
+<main>
 <h1>Lint UI Report</h1>
 <p>Generated ${escapeHtml(new Date(results.timestamp).toISOString())} — ${results.summary.passed} passed, ${results.summary.failed} failed (${results.summary.total} total).</p>
 <div class="summary">
@@ -204,6 +209,7 @@ ${select('f-viewport', 'Viewport', viewports)}
 ${select('f-category', 'Category', ['visual', 'layout', 'a11y'])}
 </div>
 ${cases}
+</main>
 <script>
 function applyFilters() {
   const status = document.getElementById('f-status').value;

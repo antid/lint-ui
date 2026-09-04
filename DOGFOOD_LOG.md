@@ -134,3 +134,18 @@ the defects are fixed.
   16/16 passing with zero findings after the fixes.
 - Portfolio relevance: first case of the tool finding genuine defects in its own
   demo target before any external dogfooding.
+
+### 2026-09-04 — Self-test: lint-ui checks its own HTML report
+
+- Project and branch: `report.html` from a local gate run, served over HTTP on `m-report-selfcheck`.
+- Product change being tested: the M4 report template (CSS grid, placeholder blocks, no landmarks).
+- Routes and viewports: the report page at mobile 375px and desktop 1280px.
+- Result: axe reported `color-contrast` (serious, placeholder gray on gray),
+  `landmark-one-main` and `region` (both moderate, content outside any landmark);
+  the layout check found horizontal overflow at 375px from grid blowout.
+- Classification: true positives.
+- Action taken in Lint UI: darkened placeholder text, wrapped content in `<main>`,
+  added `minmax(0, 1fr)` columns with single-column stacking under 600px.
+- Verification: re-ran the same checks after the fix — zero violations and zero
+  overflow at both viewports; unit suite and golden snapshot updated.
+- Portfolio relevance: closes the loop — the quality gate now passes its own checks.
