@@ -5,6 +5,18 @@ import { createHash } from 'node:crypto';
 import type { Config, ScreenshotResult, TestResult, RunResults, Route } from './types.js';
 import { VisualDiffer } from './differ.js';
 
+// Total capture attempts per route/viewport case: one try plus one retry.
+// Deliberately not configurable: retries exist only to absorb known transient
+// slowness (navigation/readiness timeouts), never to mask real failures.
+const MAX_CAPTURE_ATTEMPTS = 2;
+
+function isTransientCaptureError(error: unknown): boolean {
+  // Playwright marks navigation, selector, and function timeouts with this
+  // name. Anything else (connection refused, invalid selector, crashed
+  // browser) is deterministic or needs a live browser, so it fails fast.
+  return error instanceof Error && error.name === 'TimeoutError';
+}
+
 export class Runner {
   private browser: Browser | null = null;
   private config: Config;
@@ -31,7 +43,7 @@ export class Runner {
 
       for (const route of this.config.routes) {
         for (const breakpoint of this.config.breakpoints) {
-          const screenshot = await this.captureScreenshot(route, breakpoint);
+          const screenshot = await this.captureWithRetry(route, breakpoint);
           const filename = screenshotFilename(route.path, breakpoint.name);
           fs.copyFileSync(screenshot.path, path.join(this.config.baselineDir, filename));
           console.log(`✓ ${route.path} @ ${breakpoint.name}`);
@@ -65,7 +77,7 @@ export class Runner {
           const baselinePath = path.join(this.config.baselineDir, filename);
 
           try {
-            const screenshot = await this.captureScreenshot(route, breakpoint);
+            const screenshot = await this.captureWithRetry(route, breakpoint);
             fs.copyFileSync(screenshot.path, currentPath);
 
             const result: TestResult = {
@@ -150,6 +162,21 @@ export class Runner {
     return runResults;
   }
 
+  private async captureWithRetry(
+    route: Route,
+    breakpoint: { name: string; width: number; height?: number }
+  ): Promise<ScreenshotResult> {
+    for (let attempt = 1; ; attempt += 1) {
+      try {
+        return await this.captureScreenshot(route, breakpoint);
+      } catch (error) {
+        if (!isTransientCaptureError(error) || attempt >= MAX_CAPTURE_ATTEMPTS) {
+          throw error;
+        }
+      }
+    }
+  }
+
   private async captureScreenshot(
     route: Route,
     breakpoint: { name: string; width: number; height?: number }
@@ -168,35 +195,49 @@ export class Runner {
     try {
       // Disable animations if configured
       if (this.config.disableAnimations) {
-        await page.addStyleTag({
-          content: `
-            *, *::before, *::after {
-              animation-duration: 0s !important;
-              animation-delay: 0s !important;
-              transition-duration: 0s !important;
-              transition-delay: 0s !important;
-            }
-          `,
+        await page.emulateMedia({ reducedMotion: 'reduce' });
+        await page.addInitScript({
+          content: `(() => {
+            const style = document.createElement('style');
+            style.dataset.lintUi = 'disable-motion';
+            style.textContent = '*,*::before,*::after{animation:none!important;transition:none!important;caret-color:transparent!important}';
+            const install = () => document.documentElement?.appendChild(style);
+            install();
+            if (!style.isConnected) document.addEventListener('DOMContentLoaded', install, { once: true });
+          })();`,
         });
       }
 
       const url = `${this.config.baseUrl}${route.path}`;
-      await page.goto(url, { waitUntil: 'networkidle' });
+      await page.goto(url, {
+        waitUntil: 'networkidle',
+        timeout: this.config.capture.navigationTimeoutMs,
+      });
 
       // Wait for ready signal if configured
       if (this.config.readySelector) {
-        await page.waitForSelector(this.config.readySelector, { timeout: 10000 });
+        await page.waitForSelector(this.config.readySelector, {
+          timeout: this.config.capture.readinessTimeoutMs,
+        });
       }
 
       // Wait for fonts to load
       await page.evaluate(() => document.fonts.ready);
+
+      await page.waitForFunction(
+        () => Array.from(document.images).every(image => image.complete),
+        undefined,
+        { timeout: this.config.capture.imageTimeoutMs },
+      );
 
       // Additional wait for route-specific selector
       if (route.waitFor) {
         if (route.waitFor === 'networkidle') {
           // Already waited for networkidle
         } else {
-          await page.waitForSelector(route.waitFor, { timeout: 10000 });
+          await page.waitForSelector(route.waitFor, {
+            timeout: this.config.capture.readinessTimeoutMs,
+          });
         }
       }
 
@@ -210,6 +251,8 @@ export class Runner {
       await page.screenshot({
         path: screenshotPath,
         fullPage: true,
+        animations: 'disabled',
+        mask: this.config.capture.maskSelectors.map(selector => page.locator(selector)),
       });
 
       return {

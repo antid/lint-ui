@@ -35,12 +35,12 @@ automated tests with predictable results and exit codes.
 
 ## M2 — Stable capture
 
-- [ ] Apply animation-disabling CSS at document creation time.
-- [ ] Wait for fonts and configurable image readiness.
-- [ ] Implement configurable selector masking.
-- [ ] Add navigation, readiness, and capture timeouts.
-- [ ] Add retry policy only for known transient capture failures.
-- [ ] Run unchanged-page repeatability tests five times.
+- [x] Apply animation-disabling CSS at document creation time.
+- [x] Wait for fonts and configurable image readiness.
+- [x] Implement configurable selector masking.
+- [x] Add navigation, readiness, and capture timeouts.
+- [x] Add retry policy only for known transient capture failures.
+- [x] Run unchanged-page repeatability tests five times.
 
 Exit criteria: the fixture produces no false visual diffs in five consecutive local
 and CI runs.

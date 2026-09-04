@@ -23,6 +23,12 @@ export interface Config {
     pixelThreshold: number;
     maxDiffPercentage: number;
   };
+  capture: {
+    navigationTimeoutMs: number;
+    readinessTimeoutMs: number;
+    imageTimeoutMs: number;
+    maskSelectors: string[];
+  };
 }
 
 export interface ScreenshotResult {

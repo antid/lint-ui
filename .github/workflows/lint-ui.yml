@@ -96,6 +96,17 @@ jobs:
         run: cd examples/react-vite && node ../../packages/cli/bin/dev.js run
         continue-on-error: true
       
+      - name: Repeatability check (5 consecutive runs)
+        # M2 exit criterion: an unchanged fixture must produce zero visual
+        # diffs across five consecutive runs. Each run overwrites current/
+        # and report.json; any failure fails the job immediately.
+        run: |
+          cd examples/react-vite
+          for i in 1 2 3 4 5; do
+            echo "--- repeatability run $i/5 ---"
+            node ../../packages/cli/bin/dev.js run || exit 1
+          done
+      
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
