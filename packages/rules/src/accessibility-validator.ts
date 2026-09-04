@@ -6,6 +6,27 @@ export interface AxeRunOptions {
   excludeSelectors?: string[];
 }
 
+interface AxeNode {
+  target: string[];
+}
+
+interface AxeViolation {
+  id: string;
+  impact: AccessibilityViolation['impact'];
+  description: string;
+  help: string;
+  helpUrl: string;
+  nodes: AxeNode[];
+}
+
+interface AxeResult {
+  violations: AxeViolation[];
+}
+
+interface AxeWindow {
+  axe: { run: (context: { exclude: string[][] }) => Promise<AxeResult> };
+}
+
 export class AccessibilityValidator {
   // axeScriptPath is injectable so tests can point at a known axe build
   // without relying on module resolution inside the test runner. When
@@ -19,16 +40,17 @@ export class AccessibilityValidator {
 
     const exclude = (options.excludeSelectors ?? []).map(selector => [selector]);
     const results = await page.evaluate(async (excludeContext: string[][]) => {
-      // @ts-ignore - axe is injected into the page at runtime
-      const axeResults = await axe.run({ exclude: excludeContext });
-      return axeResults.violations.map((violation: any) => ({
+      const axeResults = await (window as unknown as AxeWindow).axe.run({
+        exclude: excludeContext,
+      });
+      return axeResults.violations.map(violation => ({
         id: violation.id,
         impact: violation.impact,
         description: violation.description,
         help: violation.help,
         helpUrl: violation.helpUrl,
         nodes: violation.nodes.length,
-        selectors: [...new Set(violation.nodes.flatMap((node: any) => node.target))],
+        selectors: [...new Set(violation.nodes.flatMap(node => node.target))],
       }));
     }, exclude);
 

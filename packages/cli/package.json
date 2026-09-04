@@ -27,7 +27,6 @@
     "build": "tsc -b",
     "clean": "rm -rf dist *.tsbuildinfo",
     "dev": "node ./bin/dev.js",
-    "lint": "eslint . --ext .ts",
     "test": "echo \"No tests yet\""
   },
   "dependencies": {

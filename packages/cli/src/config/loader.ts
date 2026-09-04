@@ -24,7 +24,7 @@ export class ConfigLoader {
         baselineDir: path.resolve(configDirectory, config.baselineDir),
       };
     } catch (error) {
-      throw new Error(`Invalid configuration: ${error}`);
+      throw new Error(`Invalid configuration: ${error}`, { cause: error });
     }
   }
 

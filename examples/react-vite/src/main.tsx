@@ -8,7 +8,7 @@ import Settings from './pages/Settings'
 import Pricing from './pages/Pricing'
 
 function App() {
-  const [_isReady, setIsReady] = useState(false)
+  const [, setIsReady] = useState(false)
 
   useEffect(() => {
     // Simulate loading fonts and data
