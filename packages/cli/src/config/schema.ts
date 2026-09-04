@@ -28,12 +28,14 @@ export const ThresholdSchema = z.object({
   maxDiffPercentage: z.number().min(0).max(100).default(0.1),
 });
 
-export const RulesSchema = z.object({
-  checkOverflow: z.boolean().default(true),
-  checkClipping: z.boolean().default(true),
-  checkAccessibility: z.boolean().default(true),
-  checkContrast: z.boolean().default(true),
-});
+export const AccessibilitySchema = z.object({
+  enabled: z.boolean().default(true),
+  failImpacts: z
+    .array(z.enum(['minor', 'moderate', 'serious', 'critical']))
+    .default(['critical', 'serious']),
+  excludeRules: z.array(z.string().min(1)).default([]),
+  excludeSelectors: z.array(z.string().min(1)).default([]),
+}).strict();
 
 export const AuthSchema = z.object({
   type: z.enum(['cookie', 'localStorage', 'header']).optional(),
@@ -62,6 +64,7 @@ export const ConfigSchema = z.object({
   variants: unsupportedOption('variants'),
   thresholds: ThresholdSchema.default({}),
   capture: CaptureSchema.default({}),
+  accessibility: AccessibilitySchema.default({}),
   rules: unsupportedOption('rules'),
   auth: unsupportedOption('auth'),
   ignoreSelectors: unsupportedOption('ignoreSelectors'),

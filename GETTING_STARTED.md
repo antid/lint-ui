@@ -116,6 +116,12 @@ capture:
   readinessTimeoutMs: 10000
   imageTimeoutMs: 10000
   maskSelectors: []
+
+accessibility:
+  enabled: true
+  failImpacts: [critical, serious]
+  excludeRules: []
+  excludeSelectors: []
 ```
 
 ## What Gets Checked
@@ -128,10 +134,13 @@ capture:
 ### Layout Checks
 
 - Horizontal overflow and out-of-bounds elements fail the case
-- Clipped-text and off-screen interactive elements are reported as warnings
+- Clipped text is reported as a warning
 
-Accessibility checks are planned for v1 and are not executed by the
-current runner.
+### Accessibility Checks
+
+- axe-core runs on every case; critical and serious impacts fail the case
+- Tune with the `accessibility` block (`enabled`, `failImpacts`,
+  `excludeRules`, `excludeSelectors`)
 
 ## Output Structure
 

@@ -59,6 +59,12 @@ capture:
   imageTimeoutMs: 10000
   maskSelectors: []
 
+accessibility:
+  enabled: true
+  failImpacts: [critical, serious]
+  excludeRules: []
+  excludeSelectors: []
+
 disableAnimations: true
 readySelector: '[data-ui-ready="true"]'
 outputDir: .lint-ui

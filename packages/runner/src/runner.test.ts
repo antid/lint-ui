@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { PNG } from 'pngjs';
 import type { Browser, Page } from 'playwright';
 import { describe, expect, it, vi } from 'vitest';
-import { LayoutValidator, type LayoutIssue } from '@lint-ui/rules';
+import { LayoutValidator, AccessibilityValidator, type LayoutIssue, type AccessibilityViolation } from '@lint-ui/rules';
 import type { Config } from './types.js';
 import { Runner, screenshotFilename } from './runner.js';
 
@@ -57,6 +57,12 @@ function testRunner(
       readinessTimeoutMs: 10000,
       imageTimeoutMs: 10000,
       maskSelectors: [],
+    },
+    accessibility: {
+      enabled: false,
+      failImpacts: ['critical', 'serious'],
+      excludeRules: [],
+      excludeSelectors: [],
     },
     disableAnimations: false,
     outputDir: join(directory, 'output'),
@@ -188,6 +194,102 @@ describe('screenshotFilename', () => {
         { ruleId: 'horizontal-overflow', severity: 'error' },
       ]);
       expect(results.results[0]).not.toHaveProperty('visualDiff');
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  it('fails the case when a violation hits the impact policy', async () => {
+    const directory = mkdtempSync(join(tmpdir(), 'lint-ui-runner-'));
+    const { runner, config } = testRunner(directory);
+    config.accessibility.enabled = true;
+    const violation: AccessibilityViolation = {
+      id: 'color-contrast',
+      impact: 'serious',
+      description: 'Elements must meet minimum color contrast ratio thresholds',
+      help: 'Elements must have sufficient color contrast',
+      helpUrl: 'https://dequeuniversity.com/rules/axe/4.8/color-contrast',
+      nodes: 2,
+      selectors: ['.button'],
+    };
+    const spy = vi
+      .spyOn(AccessibilityValidator.prototype, 'runAxe')
+      .mockResolvedValue([violation]);
+    try {
+      const filename = screenshotFilename('/', 'mobile');
+      const { mkdirSync } = await import('node:fs');
+      mkdirSync(config.baselineDir, { recursive: true });
+      writeFileSync(join(config.baselineDir, filename), imageBuffer());
+
+      const results = await runner.runChecks();
+
+      expect(results.results[0]).toMatchObject({ status: 'failed', passed: false });
+      expect(results.results[0].accessibilityViolations).toHaveLength(1);
+      expect(results.results[0]).not.toHaveProperty('visualDiff');
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  it('suppresses excluded rules with evidence instead of failing', async () => {
+    const directory = mkdtempSync(join(tmpdir(), 'lint-ui-runner-'));
+    const { runner, config } = testRunner(directory);
+    config.accessibility.enabled = true;
+    config.accessibility.excludeRules = ['color-contrast'];
+    const violation: AccessibilityViolation = {
+      id: 'color-contrast',
+      impact: 'critical',
+      description: 'Elements must meet minimum color contrast ratio thresholds',
+      help: 'Elements must have sufficient color contrast',
+      helpUrl: 'https://dequeuniversity.com/rules/axe/4.8/color-contrast',
+      nodes: 1,
+      selectors: ['.nav-brand'],
+    };
+    const spy = vi
+      .spyOn(AccessibilityValidator.prototype, 'runAxe')
+      .mockResolvedValue([violation]);
+    try {
+      const filename = screenshotFilename('/', 'mobile');
+      const { mkdirSync } = await import('node:fs');
+      mkdirSync(config.baselineDir, { recursive: true });
+      writeFileSync(join(config.baselineDir, filename), imageBuffer());
+
+      const results = await runner.runChecks();
+
+      expect(results.results[0]).toMatchObject({ status: 'passed', passed: true });
+      expect(results.results[0].accessibilityViolations).toEqual([]);
+      expect(results.results[0].exclusionsApplied).toEqual({ rules: ['color-contrast'], selectors: [] });
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  it('reports violations outside the impact policy without failing', async () => {
+    const directory = mkdtempSync(join(tmpdir(), 'lint-ui-runner-'));
+    const { runner, config } = testRunner(directory);
+    config.accessibility.enabled = true;
+    const violation: AccessibilityViolation = {
+      id: 'heading-order',
+      impact: 'moderate',
+      description: 'Heading levels should only increase by one',
+      help: 'Headings must be ordered',
+      helpUrl: 'https://dequeuniversity.com/rules/axe/4.8/heading-order',
+      nodes: 1,
+      selectors: ['.card > h3'],
+    };
+    const spy = vi
+      .spyOn(AccessibilityValidator.prototype, 'runAxe')
+      .mockResolvedValue([violation]);
+    try {
+      const filename = screenshotFilename('/', 'mobile');
+      const { mkdirSync } = await import('node:fs');
+      mkdirSync(config.baselineDir, { recursive: true });
+      writeFileSync(join(config.baselineDir, filename), imageBuffer());
+
+      const results = await runner.runChecks();
+
+      expect(results.results[0]).toMatchObject({ status: 'passed', passed: true });
+      expect(results.results[0].accessibilityViolations).toHaveLength(1);
     } finally {
       spy.mockRestore();
     }

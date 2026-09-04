@@ -68,6 +68,13 @@ export class LayoutValidator {
 
       for (const el of elements) {
         const htmlEl = el as HTMLElement;
+
+        // Document structure is not content: a scrolled page always has a
+        // taller root than viewport, which is navigation, not clipping.
+        if (htmlEl.tagName === 'HTML' || htmlEl.tagName === 'HEAD' || htmlEl.tagName === 'BODY') {
+          continue;
+        }
+
         const style = window.getComputedStyle(htmlEl);
 
         // Skip elements that are intentionally scrollable or truncated.
@@ -104,6 +111,9 @@ export class LayoutValidator {
     return issues;
   }
 
+  // Not wired into checkAll: below-the-fold buttons are reachable by
+  // scrolling, and this check cannot distinguish them from truly stranded
+  // controls. Kept for a future refinement, not part of v1.
   async checkOffscreenElements(page: Page): Promise<LayoutIssue[]> {
     const issues: LayoutIssue[] = [];
 
@@ -209,14 +219,12 @@ export class LayoutValidator {
   }
 
   async checkAll(page: Page): Promise<LayoutIssue[]> {
-    const [overflowIssues, clippingIssues, offscreenIssues, outOfBoundsIssues] =
-      await Promise.all([
-        this.checkOverflow(page),
-        this.checkTextClipping(page),
-        this.checkOffscreenElements(page),
-        this.checkOutOfBounds(page),
-      ]);
+    const [overflowIssues, clippingIssues, outOfBoundsIssues] = await Promise.all([
+      this.checkOverflow(page),
+      this.checkTextClipping(page),
+      this.checkOutOfBounds(page),
+    ]);
 
-    return [...overflowIssues, ...clippingIssues, ...offscreenIssues, ...outOfBoundsIssues];
+    return [...overflowIssues, ...clippingIssues, ...outOfBoundsIssues];
   }
 }

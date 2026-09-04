@@ -51,9 +51,20 @@ export class Reporter {
           for (const violation of test.accessibilityViolations) {
             const emoji =
               violation.impact === 'critical' || violation.impact === 'serious' ? '❌' : '⚠️';
-            lines.push(`- ${emoji} [${violation.id}] ${violation.description} (${violation.nodes} nodes)`);
+            lines.push(`- ${emoji} [${violation.id}] ${violation.description} (${violation.nodes} nodes${violation.selectors[0] ? `, e.g. ${violation.selectors[0]}` : ''})`);
           }
           lines.push('');
+        }
+
+        if (
+          test.exclusionsApplied &&
+          (test.exclusionsApplied.rules.length > 0 || test.exclusionsApplied.selectors.length > 0)
+        ) {
+          const excluded = [
+            ...test.exclusionsApplied.rules.map(rule => `rule ${rule}`),
+            ...test.exclusionsApplied.selectors.map(selector => `selector ${selector}`),
+          ].join(', ');
+          lines.push(`**Exclusions applied:** ${excluded}\n`);
         }
       }
     }

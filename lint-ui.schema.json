@@ -101,6 +101,29 @@
         }
       }
     },
+    "accessibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "axe-core accessibility checks and failure policy",
+      "properties": {
+        "enabled": { "type": "boolean", "default": true },
+        "failImpacts": {
+          "type": "array",
+          "default": ["critical", "serious"],
+          "items": { "type": "string", "enum": ["minor", "moderate", "serious", "critical"] }
+        },
+        "excludeRules": {
+          "type": "array",
+          "default": [],
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "excludeSelectors": {
+          "type": "array",
+          "default": [],
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
     "readySelector": {
       "type": "string",
       "description": "CSS selector indicating the page is ready for testing"

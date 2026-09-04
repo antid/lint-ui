@@ -22,6 +22,7 @@ export interface AccessibilityViolation {
   help: string;
   helpUrl: string;
   nodes: number;
+  selectors: string[];
 }
 
 export interface RuleResult {

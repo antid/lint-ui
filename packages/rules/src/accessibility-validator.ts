@@ -1,17 +1,26 @@
 import type { Page } from 'playwright';
 import type { AccessibilityViolation } from './types.js';
 
-export class AccessibilityValidator {
-  async runAxe(page: Page): Promise<AccessibilityViolation[]> {
-    // Inject axe-core into the page
-    await page.addScriptTag({
-      path: require.resolve('axe-core/axe.min.js'),
-    });
+export interface AxeRunOptions {
+  // CSS selectors for subtrees axe must skip (intentional exclusions).
+  excludeSelectors?: string[];
+}
 
-    // Run axe-core
-    const results = await page.evaluate(async () => {
-      // @ts-ignore - axe is injected globally
-      const axeResults = await axe.run();
+export class AccessibilityValidator {
+  // axeScriptPath is injectable so tests can point at a known axe build
+  // without relying on module resolution inside the test runner. When
+  // omitted, the bundled axe-core dependency is resolved. This file must
+  // stay free of import.meta so the CJS build keeps compiling.
+  constructor(private axeScriptPath?: string) {}
+
+  async runAxe(page: Page, options: AxeRunOptions = {}): Promise<AccessibilityViolation[]> {
+    const scriptPath = this.axeScriptPath ?? require.resolve('axe-core/axe.min.js');
+    await page.addScriptTag({ path: scriptPath });
+
+    const exclude = (options.excludeSelectors ?? []).map(selector => [selector]);
+    const results = await page.evaluate(async (excludeContext: string[][]) => {
+      // @ts-ignore - axe is injected into the page at runtime
+      const axeResults = await axe.run({ exclude: excludeContext });
       return axeResults.violations.map((violation: any) => ({
         id: violation.id,
         impact: violation.impact,
@@ -19,23 +28,10 @@ export class AccessibilityValidator {
         help: violation.help,
         helpUrl: violation.helpUrl,
         nodes: violation.nodes.length,
+        selectors: [...new Set(violation.nodes.flatMap((node: any) => node.target))],
       }));
-    });
+    }, exclude);
 
     return results;
-  }
-
-  async checkColorContrast(_page: Page): Promise<AccessibilityViolation[]> {
-    // This is already included in axe-core, but we can add custom checks here
-    return [];
-  }
-
-  async checkAll(page: Page): Promise<AccessibilityViolation[]> {
-    const [axeViolations, contrastIssues] = await Promise.all([
-      this.runAxe(page),
-      this.checkColorContrast(page),
-    ]);
-
-    return [...axeViolations, ...contrastIssues];
   }
 }
