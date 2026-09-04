@@ -12,6 +12,12 @@ function setup(): { config: Config; filename: string } {
     routes: [{ path: '/' }],
     breakpoints: [{ name: 'mobile', width: 375 }],
     thresholds: { pixelThreshold: 0.1, maxDiffPercentage: 0.1 },
+    capture: {
+      navigationTimeoutMs: 30000,
+      readinessTimeoutMs: 10000,
+      imageTimeoutMs: 10000,
+      maskSelectors: [],
+    },
     disableAnimations: true,
     outputDir: join(directory, 'output'),
     baselineDir: join(directory, 'baseline'),

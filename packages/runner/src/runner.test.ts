@@ -13,15 +13,32 @@ function imageBuffer(): Buffer {
   return PNG.sync.write(image);
 }
 
-function testRunner(directory: string, options: { navigationError?: Error } = {}) {
+function timeoutError(message: string): Error {
+  const error = new Error(message);
+  error.name = 'TimeoutError';
+  return error;
+}
+
+function testRunner(
+  directory: string,
+  options: { navigationError?: Error; transientNavigationErrorOnce?: Error } = {},
+) {
   const closePage = vi.fn();
   const closeBrowser = vi.fn();
+  const goto = vi.fn(async () => {});
+  if (options.navigationError) {
+    goto.mockRejectedValue(options.navigationError);
+  } else if (options.transientNavigationErrorOnce) {
+    goto.mockRejectedValueOnce(options.transientNavigationErrorOnce);
+  }
   const page = {
     addStyleTag: vi.fn(),
-    goto: options.navigationError
-      ? vi.fn(async () => { throw options.navigationError; })
-      : vi.fn(),
+    addInitScript: vi.fn(),
+    emulateMedia: vi.fn(),
+    goto,
     evaluate: vi.fn(),
+    waitForFunction: vi.fn(),
+    locator: vi.fn(selector => ({ selector })),
     screenshot: vi.fn(({ path }: { path: string }) => writeFileSync(path, imageBuffer())),
     close: closePage,
   } as unknown as Page;
@@ -34,6 +51,12 @@ function testRunner(directory: string, options: { navigationError?: Error } = {}
     routes: [{ path: '/' }],
     breakpoints: [{ name: 'mobile', width: 375, height: 812 }],
     thresholds: { pixelThreshold: 0.1, maxDiffPercentage: 0.1 },
+    capture: {
+      navigationTimeoutMs: 30000,
+      readinessTimeoutMs: 10000,
+      imageTimeoutMs: 10000,
+      maskSelectors: [],
+    },
     disableAnimations: false,
     outputDir: join(directory, 'output'),
     baselineDir: join(directory, 'baseline'),
@@ -44,6 +67,7 @@ function testRunner(directory: string, options: { navigationError?: Error } = {}
     config,
     closePage,
     closeBrowser,
+    page,
   };
 }
 
@@ -92,7 +116,7 @@ describe('screenshotFilename', () => {
 
   it('records navigation errors and still closes browser resources', async () => {
     const directory = mkdtempSync(join(tmpdir(), 'lint-ui-runner-'));
-    const { runner, closePage, closeBrowser } = testRunner(directory, {
+    const { runner, closePage, closeBrowser, page } = testRunner(directory, {
       navigationError: new Error('connection refused'),
     });
 
@@ -103,7 +127,66 @@ describe('screenshotFilename', () => {
       passed: false,
       errorMessage: 'connection refused',
     });
+    expect(page.goto).toHaveBeenCalledTimes(1);
     expect(closePage).toHaveBeenCalledOnce();
     expect(closeBrowser).toHaveBeenCalledOnce();
+  });
+
+  it('retries a transient navigation timeout once and then succeeds', async () => {
+    const directory = mkdtempSync(join(tmpdir(), 'lint-ui-runner-'));
+    const { runner, config, page } = testRunner(directory, {
+      transientNavigationErrorOnce: timeoutError('Navigation timeout of 1234ms exceeded'),
+    });
+    const filename = screenshotFilename('/', 'mobile');
+    const { mkdirSync } = await import('node:fs');
+    mkdirSync(config.baselineDir, { recursive: true });
+    writeFileSync(join(config.baselineDir, filename), imageBuffer());
+
+    const results = await runner.runChecks();
+
+    expect(results.results[0]).toMatchObject({ status: 'passed', passed: true });
+    expect(page.goto).toHaveBeenCalledTimes(2);
+  });
+
+  it('fails after one retry when timeouts persist', async () => {
+    const directory = mkdtempSync(join(tmpdir(), 'lint-ui-runner-'));
+    const { runner, page } = testRunner(directory, {
+      navigationError: timeoutError('Navigation timeout of 1234ms exceeded'),
+    });
+
+    const results = await runner.runChecks();
+
+    expect(results.results[0]).toMatchObject({ status: 'error', passed: false });
+    expect(page.goto).toHaveBeenCalledTimes(2);
+  });
+
+  it('applies deterministic capture controls and configured timeouts', async () => {
+    const directory = mkdtempSync(join(tmpdir(), 'lint-ui-runner-'));
+    const fixture = testRunner(directory);
+    fixture.config.disableAnimations = true;
+    fixture.config.capture = {
+      navigationTimeoutMs: 1234,
+      readinessTimeoutMs: 2345,
+      imageTimeoutMs: 3456,
+      maskSelectors: ['.timestamp'],
+    };
+
+    await fixture.runner.runChecks();
+
+    expect(fixture.page.emulateMedia).toHaveBeenCalledWith({ reducedMotion: 'reduce' });
+    expect(fixture.page.addInitScript).toHaveBeenCalledOnce();
+    expect(fixture.page.goto).toHaveBeenCalledWith('http://localhost:4173/', {
+      waitUntil: 'networkidle',
+      timeout: 1234,
+    });
+    expect(fixture.page.waitForFunction).toHaveBeenCalledWith(
+      expect.any(Function),
+      undefined,
+      { timeout: 3456 },
+    );
+    expect(fixture.page.locator).toHaveBeenCalledWith('.timestamp');
+    expect(fixture.page.screenshot).toHaveBeenCalledWith(
+      expect.objectContaining({ animations: 'disabled', mask: [{ selector: '.timestamp' }] }),
+    );
   });
 });

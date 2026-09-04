@@ -86,6 +86,21 @@
         }
       }
     },
+    "capture": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Controls that make page capture deterministic",
+      "properties": {
+        "navigationTimeoutMs": { "type": "integer", "minimum": 1, "default": 30000 },
+        "readinessTimeoutMs": { "type": "integer", "minimum": 1, "default": 10000 },
+        "imageTimeoutMs": { "type": "integer", "minimum": 1, "default": 10000 },
+        "maskSelectors": {
+          "type": "array",
+          "default": [],
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
     "readySelector": {
       "type": "string",
       "description": "CSS selector indicating the page is ready for testing"

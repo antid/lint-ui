@@ -110,6 +110,12 @@ breakpoints:
 thresholds:
   pixelThreshold: 0.1
   maxDiffPercentage: 0.1
+
+capture:
+  navigationTimeoutMs: 30000
+  readinessTimeoutMs: 10000
+  imageTimeoutMs: 10000
+  maskSelectors: []
 ```
 
 ## What Gets Checked

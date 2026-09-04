@@ -80,6 +80,23 @@ describe('ConfigLoader', () => {
     expect(config.thresholds).toEqual({ pixelThreshold: 0.2, maxDiffPercentage: 2 });
   });
 
+  it('loads capture controls and applies their defaults', async () => {
+    const configPath = join(temporaryDirectory(), 'lint-ui.yml');
+    writeFileSync(
+      configPath,
+      'baseUrl: http://localhost:4173\nroutes:\n  - path: /\ncapture:\n  navigationTimeoutMs: 5000\n  maskSelectors: [.timestamp]\n',
+    );
+
+    const config = await ConfigLoader.load(configPath);
+
+    expect(config.capture).toEqual({
+      navigationTimeoutMs: 5000,
+      readinessTimeoutMs: 10000,
+      imageTimeoutMs: 10000,
+      maskSelectors: ['.timestamp'],
+    });
+  });
+
   it('rejects duplicate routes and breakpoints', async () => {
     const configPath = join(temporaryDirectory(), 'lint-ui.yml');
     writeFileSync(

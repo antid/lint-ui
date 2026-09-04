@@ -40,6 +40,13 @@ export const AuthSchema = z.object({
   value: z.record(z.string()).optional(),
 });
 
+export const CaptureSchema = z.object({
+  navigationTimeoutMs: z.number().int().positive().default(30000),
+  readinessTimeoutMs: z.number().int().positive().default(10000),
+  imageTimeoutMs: z.number().int().positive().default(10000),
+  maskSelectors: z.array(z.string().min(1)).default([]),
+}).strict();
+
 const unsupportedOption = (name: string) =>
   z.any().refine(() => false, `${name} is planned but not supported yet`).optional();
 
@@ -54,6 +61,7 @@ export const ConfigSchema = z.object({
   ]),
   variants: unsupportedOption('variants'),
   thresholds: ThresholdSchema.default({}),
+  capture: CaptureSchema.default({}),
   rules: unsupportedOption('rules'),
   auth: unsupportedOption('auth'),
   ignoreSelectors: unsupportedOption('ignoreSelectors'),

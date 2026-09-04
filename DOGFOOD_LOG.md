@@ -55,6 +55,8 @@ Record decisions that affect the product contract.
 | --- | --- | --- | --- |
 | 2026-09-04 | Position v1 as a local-first UI quality gate, not only a screenshot differ. | Repository audit found working visual comparison plus disconnected layout and accessibility modules. | v1 must join visual, layout, and accessibility results through one trustworthy result model. |
 | 2026-09-04 | Keep v1 intentionally narrow. | Configuration and documentation currently advertise several behaviors that execution ignores. | Unimplemented variants, changed-route analysis, hosted review, and design-token enforcement remain explicit non-goals. |
+| 2026-09-04 | Defer authenticated flows past v1. | V1_SPEC listed storage-state login as supported while configuration rejects `auth` as unimplemented. | Supported scope is public pages only; storage-state login is an explicit non-goal until a milestone schedules it. |
+| 2026-09-04 | Keep the v1 layout set to overflow, out-of-bounds, and clipping. | Broader heuristics (overlap, target size, breakpoint visibility) have no fixtures, thresholds, or noise evidence. | Overlap, minimum-target-size, and breakpoint-visibility heuristics are explicit non-goals for v1. |
 
 ## Baseline repository audit — 2026-09-04
 
