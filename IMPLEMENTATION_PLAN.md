@@ -88,6 +88,7 @@ acceptable noise level and documented evidence.
 - [ ] Finalize package/binary naming and verify registry availability.
 - [ ] Support installation and execution outside the monorepo.
 - [x] Document Playwright browser installation clearly.
+- [x] Test macOS, Linux, and GitHub Actions.
 - [ ] Test macOS, Linux, and GitHub Actions.
 - [ ] Add release notes and automated package validation.
 - [ ] Ask at least one external developer to complete the first-run flow.
