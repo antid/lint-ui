@@ -12,7 +12,7 @@ only when its behavior is automated and documented.
 - [x] Remove or mark unimplemented CLI/configuration options.
 - [x] Define initial public statuses, failure policy, and process exit codes. (M1
       expands statuses for missing baselines and execution errors.)
-- [x] Add repository checks for build, type checking, and tests.
+- [x] Add repository checks for build, type checking, linting, and tests.
 - [x] Align README claims with implemented behavior.
 
 Exit criteria: a clean checkout builds and tests, and documentation no longer claims
