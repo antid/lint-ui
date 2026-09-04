@@ -21,10 +21,19 @@ export class Reporter {
       for (const test of failed) {
         lines.push(`### ${test.route} @ ${test.breakpoint}\n`);
 
+        if (test.status === 'missing-baseline') {
+          lines.push('**Missing baseline:** Run `lint-ui record` before comparing this case.\n');
+        }
+
+        if (test.status === 'error') {
+          lines.push(`**Execution error:** ${test.errorMessage ?? 'Unknown error'}\n`);
+        }
+
         if (test.visualDiff) {
           lines.push('**Visual Regression:**');
           lines.push(`- Diff: ${test.visualDiff.diffPercentage.toFixed(2)}%`);
           lines.push(`- Pixels changed: ${test.visualDiff.diffPixels}`);
+          if (test.visualDiff.reason) lines.push(`- Reason: ${test.visualDiff.reason}`);
           lines.push(`- Image: \`${test.visualDiff.diffImagePath}\`\n`);
         }
 

@@ -1,4 +1,4 @@
-export { Runner } from './runner.js';
+export { Runner, screenshotFilename } from './runner.js';
 export { VisualDiffer } from './differ.js';
 export type {
   Breakpoint,

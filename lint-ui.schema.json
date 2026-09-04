@@ -13,6 +13,7 @@
     },
     "routes": {
       "type": "array",
+      "minItems": 1,
       "description": "List of routes to test",
       "items": {
         "type": "object",
@@ -35,6 +36,7 @@
     },
     "breakpoints": {
       "type": "array",
+      "minItems": 1,
       "description": "Viewport breakpoints to test",
       "default": [
         { "name": "mobile", "width": 375, "height": 812 },
@@ -60,6 +62,27 @@
             "minimum": 1,
             "description": "Viewport height in pixels"
           }
+        }
+      }
+    },
+    "thresholds": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Visual comparison thresholds",
+      "properties": {
+        "pixelThreshold": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.1,
+          "description": "pixelmatch sensitivity; lower values detect smaller color differences"
+        },
+        "maxDiffPercentage": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "default": 0.1,
+          "description": "Maximum percentage of changed pixels allowed before failure"
         }
       }
     },

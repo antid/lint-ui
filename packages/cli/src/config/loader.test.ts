@@ -18,7 +18,7 @@ describe('ConfigLoader', () => {
 
     expect(config.breakpoints).toHaveLength(4);
     expect(config.disableAnimations).toBe(true);
-    expect(config.outputDir).toBe('.lint-ui');
+    expect(config.outputDir).toBe(join(directory, '.lint-ui'));
   });
 
   it('reports a missing configuration file', async () => {
@@ -36,13 +36,12 @@ describe('ConfigLoader', () => {
     await expect(ConfigLoader.load(configPath)).rejects.toThrow('Invalid configuration');
   });
 
-  it.each(['variants', 'thresholds', 'rules', 'auth', 'ignoreSelectors'])(
+  it.each(['variants', 'rules', 'auth', 'ignoreSelectors'])(
     'rejects planned option %s instead of silently ignoring it',
     async option => {
       const configPath = join(temporaryDirectory(), 'lint-ui.yml');
       const values: Record<string, string> = {
         variants: '  theme: [dark]',
-        thresholds: '  pixelDiffThreshold: 0.2',
         rules: '  checkOverflow: true',
         auth: '  type: header\n  value:\n    Authorization: token',
         ignoreSelectors: '  - .timestamp',
@@ -57,6 +56,40 @@ describe('ConfigLoader', () => {
       );
     },
   );
+
+  it('resolves output paths relative to the configuration file', async () => {
+    const directory = temporaryDirectory();
+    const configPath = join(directory, 'lint-ui.yml');
+    writeFileSync(configPath, 'baseUrl: http://localhost:4173\nroutes:\n  - path: /\n');
+
+    const config = await ConfigLoader.load(configPath);
+
+    expect(config.outputDir).toBe(join(directory, '.lint-ui'));
+    expect(config.baselineDir).toBe(join(directory, '.ui-baseline'));
+  });
+
+  it('loads explicit visual thresholds', async () => {
+    const configPath = join(temporaryDirectory(), 'lint-ui.yml');
+    writeFileSync(
+      configPath,
+      'baseUrl: http://localhost:4173\nroutes:\n  - path: /\nthresholds:\n  pixelThreshold: 0.2\n  maxDiffPercentage: 2\n',
+    );
+
+    const config = await ConfigLoader.load(configPath);
+
+    expect(config.thresholds).toEqual({ pixelThreshold: 0.2, maxDiffPercentage: 2 });
+  });
+
+  it('rejects duplicate routes and breakpoints', async () => {
+    const configPath = join(temporaryDirectory(), 'lint-ui.yml');
+    writeFileSync(
+      configPath,
+      'baseUrl: http://localhost:4173\nroutes:\n  - path: /\n  - path: /\nbreakpoints:\n  - name: mobile\n    width: 375\n  - name: mobile\n    width: 400\n',
+    );
+
+    await expect(ConfigLoader.load(configPath)).rejects.toThrow('Duplicate route path');
+    await expect(ConfigLoader.load(configPath)).rejects.toThrow('Duplicate breakpoint name');
+  });
 
   it('rejects unknown options', async () => {
     const configPath = join(temporaryDirectory(), 'lint-ui.yml');

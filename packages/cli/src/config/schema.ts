@@ -24,8 +24,8 @@ export const VariantSchema = z.object({
 });
 
 export const ThresholdSchema = z.object({
-  pixelDiffThreshold: z.number().min(0).max(1).default(0.1),
-  layoutShiftThreshold: z.number().default(0.1),
+  pixelThreshold: z.number().min(0).max(1).default(0.1),
+  maxDiffPercentage: z.number().min(0).max(100).default(0.1),
 });
 
 export const RulesSchema = z.object({
@@ -45,15 +45,15 @@ const unsupportedOption = (name: string) =>
 
 export const ConfigSchema = z.object({
   baseUrl: z.string().url(),
-  routes: z.array(RouteSchema),
-  breakpoints: z.array(BreakpointSchema).default([
+  routes: z.array(RouteSchema).min(1),
+  breakpoints: z.array(BreakpointSchema).min(1).default([
     { name: 'mobile', width: 375, height: 812 },
     { name: 'tablet', width: 768, height: 1024 },
     { name: 'desktop', width: 1280, height: 800 },
     { name: 'large', width: 1440, height: 900 },
   ]),
   variants: unsupportedOption('variants'),
-  thresholds: unsupportedOption('thresholds'),
+  thresholds: ThresholdSchema.default({}),
   rules: unsupportedOption('rules'),
   auth: unsupportedOption('auth'),
   ignoreSelectors: unsupportedOption('ignoreSelectors'),
@@ -61,7 +61,30 @@ export const ConfigSchema = z.object({
   disableAnimations: z.boolean().default(true),
   outputDir: z.string().default('.lint-ui'),
   baselineDir: z.string().default('.ui-baseline'),
-}).strict();
+}).strict().superRefine((config, context) => {
+  const duplicateRoute = config.routes.find(
+    (route, index) => config.routes.findIndex(candidate => candidate.path === route.path) !== index,
+  );
+  if (duplicateRoute) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['routes'],
+      message: `Duplicate route path: ${duplicateRoute.path}`,
+    });
+  }
+
+  const duplicateBreakpoint = config.breakpoints.find(
+    (breakpoint, index) =>
+      config.breakpoints.findIndex(candidate => candidate.name === breakpoint.name) !== index,
+  );
+  if (duplicateBreakpoint) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['breakpoints'],
+      message: `Duplicate breakpoint name: ${duplicateBreakpoint.name}`,
+    });
+  }
+});
 
 export type Config = RunnerConfig;
 export type Breakpoint = RunnerBreakpoint;

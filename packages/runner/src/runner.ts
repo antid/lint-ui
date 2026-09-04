@@ -1,39 +1,45 @@
 import { chromium, type Browser } from 'playwright';
 import * as fs from 'fs';
 import * as path from 'path';
+import { createHash } from 'node:crypto';
 import type { Config, ScreenshotResult, TestResult, RunResults, Route } from './types.js';
 import { VisualDiffer } from './differ.js';
 
 export class Runner {
   private browser: Browser | null = null;
   private config: Config;
+  private launchBrowser: () => Promise<Browser>;
+  private createDiffer: () => VisualDiffer;
 
-  constructor(config: Config) {
+  constructor(
+    config: Config,
+    dependencies: {
+      launchBrowser?: () => Promise<Browser>;
+      createDiffer?: () => VisualDiffer;
+    } = {},
+  ) {
     this.config = config;
+    this.launchBrowser = dependencies.launchBrowser ?? (() => chromium.launch({ headless: true }));
+    this.createDiffer = dependencies.createDiffer ?? (() => new VisualDiffer());
   }
 
   async recordBaselines(): Promise<void> {
     await this.ensureBrowser();
-    
-    const baselineDir = path.resolve(this.config.baselineDir);
-    if (!fs.existsSync(baselineDir)) {
-      fs.mkdirSync(baselineDir, { recursive: true });
-    }
 
-    for (const route of this.config.routes) {
-      for (const breakpoint of this.config.breakpoints) {
-        const screenshot = await this.captureScreenshot(route, breakpoint);
-        
-        const filename = this.getScreenshotFilename(route.path, breakpoint.name);
-        const targetPath = path.join(baselineDir, filename);
-        
-        fs.copyFileSync(screenshot.path, targetPath);
-        
-        console.log(`✓ ${route.path} @ ${breakpoint.name}`);
+    try {
+      fs.mkdirSync(this.config.baselineDir, { recursive: true });
+
+      for (const route of this.config.routes) {
+        for (const breakpoint of this.config.breakpoints) {
+          const screenshot = await this.captureScreenshot(route, breakpoint);
+          const filename = screenshotFilename(route.path, breakpoint.name);
+          fs.copyFileSync(screenshot.path, path.join(this.config.baselineDir, filename));
+          console.log(`✓ ${route.path} @ ${breakpoint.name}`);
+        }
       }
+    } finally {
+      await this.closeBrowser();
     }
-
-    await this.closeBrowser();
   }
 
   async runChecks(): Promise<RunResults> {
@@ -51,57 +57,80 @@ export class Runner {
 
     const results: TestResult[] = [];
 
-    for (const route of this.config.routes) {
-      for (const breakpoint of this.config.breakpoints) {
-        const screenshot = await this.captureScreenshot(route, breakpoint);
-        
-        const filename = this.getScreenshotFilename(route.path, breakpoint.name);
-        const currentPath = path.join(currentDir, filename);
-        const baselinePath = path.join(this.config.baselineDir, filename);
-        
-        fs.copyFileSync(screenshot.path, currentPath);
+    try {
+      for (const route of this.config.routes) {
+        for (const breakpoint of this.config.breakpoints) {
+          const filename = screenshotFilename(route.path, breakpoint.name);
+          const currentPath = path.join(currentDir, filename);
+          const baselinePath = path.join(this.config.baselineDir, filename);
 
-        const result: TestResult = {
-          route: route.path,
-          breakpoint: breakpoint.name,
-          status: 'passed',
-          passed: true,
-          layoutIssues: [],
-          accessibilityViolations: [],
-        };
+          try {
+            const screenshot = await this.captureScreenshot(route, breakpoint);
+            fs.copyFileSync(screenshot.path, currentPath);
 
-        // Visual diff
-        if (fs.existsSync(baselinePath)) {
-          const differ = new VisualDiffer();
-          const diffResult = await differ.compare(baselinePath, currentPath);
-          
-          if (diffResult.diffPercentage > 0.1) { // 10% threshold
-            result.status = 'failed';
-            result.passed = false;
-            result.visualDiff = {
-              diffPixels: diffResult.diffPixels,
-              diffPercentage: diffResult.diffPercentage,
-              diffImagePath: path.join(diffDir, filename),
+            const result: TestResult = {
+              route: route.path,
+              breakpoint: breakpoint.name,
+              status: 'passed',
+              passed: true,
+              layoutIssues: [],
+              accessibilityViolations: [],
             };
 
-            if (diffResult.diffImage) {
-              fs.writeFileSync(result.visualDiff.diffImagePath, diffResult.diffImage);
+            if (!fs.existsSync(baselinePath)) {
+              result.status = 'missing-baseline';
+              result.passed = false;
+            } else {
+              const differ = this.createDiffer();
+              const diffResult = await differ.compare(
+                baselinePath,
+                currentPath,
+                this.config.thresholds.pixelThreshold,
+              );
+
+              if (
+                !diffResult.dimensionsMatch ||
+                diffResult.diffPercentage > this.config.thresholds.maxDiffPercentage
+              ) {
+                result.status = 'failed';
+                result.passed = false;
+                result.visualDiff = {
+                  diffPixels: diffResult.diffPixels,
+                  diffPercentage: diffResult.diffPercentage,
+                  diffImagePath: path.join(diffDir, filename),
+                  reason: diffResult.reason,
+                };
+
+                if (diffResult.diffImage) {
+                  fs.writeFileSync(result.visualDiff.diffImagePath, diffResult.diffImage);
+                }
+              }
             }
+
+            results.push(result);
+          } catch (error) {
+            results.push({
+              route: route.path,
+              breakpoint: breakpoint.name,
+              status: 'error',
+              passed: false,
+              errorMessage: error instanceof Error ? error.message : String(error),
+              layoutIssues: [],
+              accessibilityViolations: [],
+            });
           }
+
+          const result = results[results.length - 1];
+          console.log(`${result.passed ? '✓' : '✗'} ${route.path} @ ${breakpoint.name}`);
         }
-
-        results.push(result);
-        
-        const status = result.passed ? '✓' : '✗';
-        console.log(`${status} ${route.path} @ ${breakpoint.name}`);
       }
+    } finally {
+      await this.closeBrowser();
     }
-
-    await this.closeBrowser();
 
     const failed = results.filter(r => !r.passed).length;
 
-    return {
+    const runResults: RunResults = {
       timestamp: Date.now(),
       hasFailures: failed > 0,
       results,
@@ -111,6 +140,14 @@ export class Runner {
         failed,
       },
     };
+
+    fs.mkdirSync(this.config.outputDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(this.config.outputDir, 'report.json'),
+      JSON.stringify(runResults, null, 2),
+    );
+
+    return runResults;
   }
 
   private async captureScreenshot(
@@ -163,7 +200,7 @@ export class Runner {
         }
       }
 
-      const filename = this.getScreenshotFilename(route.path, breakpoint.name);
+      const filename = screenshotFilename(route.path, breakpoint.name);
       const screenshotPath = path.join(this.config.outputDir, 'temp', filename);
       
       if (!fs.existsSync(path.dirname(screenshotPath))) {
@@ -186,14 +223,9 @@ export class Runner {
     }
   }
 
-  private getScreenshotFilename(routePath: string, breakpointName: string): string {
-    const sanitized = routePath.replace(/\//g, '_').replace(/^_/, '') || 'index';
-    return `${sanitized}-${breakpointName}.png`;
-  }
-
   private async ensureBrowser(): Promise<void> {
     if (!this.browser) {
-      this.browser = await chromium.launch({ headless: true });
+      this.browser = await this.launchBrowser();
     }
   }
 
@@ -203,4 +235,21 @@ export class Runner {
       this.browser = null;
     }
   }
+}
+
+export function screenshotFilename(routePath: string, breakpointName: string): string {
+  const sanitize = (value: string, fallback: string) =>
+    value
+      .normalize('NFKD')
+      .replace(/[^a-zA-Z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .toLowerCase() || fallback;
+
+  const route = sanitize(routePath, 'index');
+  const breakpoint = sanitize(breakpointName, 'viewport');
+  const identity = createHash('sha256')
+    .update(`${routePath}\0${breakpointName}`)
+    .digest('hex')
+    .slice(0, 8);
+  return `${route}--${breakpoint}--${identity}.png`;
 }
