@@ -1,3 +1,5 @@
+import type { AccessibilityViolation, LayoutIssue } from '@lint-ui/rules';
+
 export interface Breakpoint {
   name: string;
   width: number;
@@ -36,6 +38,7 @@ export interface ScreenshotResult {
   breakpoint: string;
   path: string;
   timestamp: number;
+  layoutIssues: LayoutIssue[];
 }
 
 export interface TestResult {
@@ -50,17 +53,8 @@ export interface TestResult {
     reason?: string;
   };
   errorMessage?: string;
-  layoutIssues?: Array<{
-    type: string;
-    message: string;
-    severity: 'error' | 'warning';
-  }>;
-  accessibilityViolations?: Array<{
-    id: string;
-    impact: string;
-    description: string;
-    nodes: number;
-  }>;
+  layoutIssues?: LayoutIssue[];
+  accessibilityViolations?: AccessibilityViolation[];
 }
 
 export interface RunResults {

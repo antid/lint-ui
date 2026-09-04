@@ -41,7 +41,7 @@ export class Reporter {
           lines.push('**Layout Issues:**');
           for (const issue of test.layoutIssues) {
             const emoji = issue.severity === 'error' ? '❌' : '⚠️';
-            lines.push(`- ${emoji} ${issue.type}: ${issue.message}`);
+            lines.push(`- ${emoji} [${issue.ruleId}] ${issue.type}: ${issue.message}`);
           }
           lines.push('');
         }
