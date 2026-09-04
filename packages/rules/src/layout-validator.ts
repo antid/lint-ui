@@ -62,16 +62,19 @@ export class LayoutValidator {
   async checkTextClipping(page: Page): Promise<LayoutIssue[]> {
     const issues: LayoutIssue[] = [];
 
-    const clippedElements = await page.evaluate(() => {
+    const clippedElements = (await page.evaluate(() => {
       const elements = Array.from(document.querySelectorAll('*'));
       const clipped: Array<{ tag: string; class: string; id: string }> = [];
 
       for (const el of elements) {
         const htmlEl = el as HTMLElement;
-        
-        // Skip elements that are intentionally scrollable
-        const overflow = window.getComputedStyle(htmlEl).overflow;
-        if (overflow === 'scroll' || overflow === 'auto') {
+        const style = window.getComputedStyle(htmlEl);
+
+        // Skip elements that are intentionally scrollable or truncated.
+        if (style.overflow === 'scroll' || style.overflow === 'auto') {
+          continue;
+        }
+        if (style.textOverflow === 'ellipsis') {
           continue;
         }
 
@@ -86,7 +89,7 @@ export class LayoutValidator {
       }
 
       return clipped;
-    });
+    })) ?? [];
 
     for (const el of clippedElements) {
       issues.push({
@@ -104,7 +107,7 @@ export class LayoutValidator {
   async checkOffscreenElements(page: Page): Promise<LayoutIssue[]> {
     const issues: LayoutIssue[] = [];
 
-    const offscreenElements = await page.evaluate(() => {
+    const offscreenElements = (await page.evaluate(() => {
       const elements = Array.from(document.querySelectorAll('button, a, input, [role="button"]'));
       const offscreen: Array<{ tag: string; text: string }> = [];
 
@@ -128,7 +131,7 @@ export class LayoutValidator {
       }
 
       return offscreen;
-    });
+    })) ?? [];
 
     for (const el of offscreenElements) {
       issues.push({
@@ -142,13 +145,78 @@ export class LayoutValidator {
     return issues;
   }
 
-  async checkAll(page: Page): Promise<LayoutIssue[]> {
-    const [overflowIssues, clippingIssues, offscreenIssues] = await Promise.all([
-      this.checkOverflow(page),
-      this.checkTextClipping(page),
-      this.checkOffscreenElements(page),
-    ]);
+  async checkOutOfBounds(page: Page): Promise<LayoutIssue[]> {
+    const issues: LayoutIssue[] = [];
 
-    return [...overflowIssues, ...clippingIssues, ...offscreenIssues];
+    const outOfBounds = (await page.evaluate(() => {
+      const found: Array<{
+        selector: string;
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+      }> = [];
+
+      for (const el of Array.from(document.querySelectorAll('body *'))) {
+        const htmlEl = el as HTMLElement;
+        const style = window.getComputedStyle(htmlEl);
+
+        // Hidden elements and intentionally off-canvas chrome (fixed/sticky
+        // drawers, tooltips) are not defects.
+        if (style.display === 'none' || style.visibility === 'hidden') {
+          continue;
+        }
+        if (style.position === 'fixed' || style.position === 'sticky') {
+          continue;
+        }
+
+        const rect = el.getBoundingClientRect();
+        if (rect.width === 0 || rect.height === 0) {
+          continue;
+        }
+
+        // Horizontal only: below-the-fold content is normal page flow.
+        if (rect.left < 0 || rect.right > window.innerWidth) {
+          const firstClass =
+            typeof htmlEl.className === 'string' ? htmlEl.className.split(' ')[0] : '';
+          found.push({
+            selector: `${htmlEl.tagName}${htmlEl.id ? `#${htmlEl.id}` : ''}${
+              firstClass ? `.${firstClass}` : ''
+            }`,
+            x: rect.x,
+            y: rect.y,
+            width: rect.width,
+            height: rect.height,
+          });
+        }
+      }
+
+      return found;
+    })) ?? [];
+
+    for (const el of outOfBounds) {
+      issues.push({
+        ruleId: 'horizontal-out-of-bounds',
+        type: 'offscreen',
+        message: `Element ${el.selector} extends beyond the horizontal viewport`,
+        severity: 'error',
+        element: el.selector,
+        bounds: { x: el.x, y: el.y, width: el.width, height: el.height },
+      });
+    }
+
+    return issues;
+  }
+
+  async checkAll(page: Page): Promise<LayoutIssue[]> {
+    const [overflowIssues, clippingIssues, offscreenIssues, outOfBoundsIssues] =
+      await Promise.all([
+        this.checkOverflow(page),
+        this.checkTextClipping(page),
+        this.checkOffscreenElements(page),
+        this.checkOutOfBounds(page),
+      ]);
+
+    return [...overflowIssues, ...clippingIssues, ...offscreenIssues, ...outOfBoundsIssues];
   }
 }

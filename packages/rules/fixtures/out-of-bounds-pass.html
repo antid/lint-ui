@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>out-of-bounds-pass fixture</title>
+  </head>
+  <body>
+    <main>
+      <h1>Out-of-bounds pass</h1>
+      <p>Ordinary page flow. Nothing sticks out sideways.</p>
+    </main>
+    <div style="display: none; width: 200vw;">Hidden wide content is not a defect.</div>
+    <aside style="position: fixed; top: 0; right: -320px; width: 320px; height: 100vh;">
+      An off-canvas drawer is intentional chrome, not a defect.
+    </aside>
+  </body>
+</html>

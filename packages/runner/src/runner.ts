@@ -254,9 +254,8 @@ export class Runner {
       }
 
       // Layout validation shares this page session so findings describe the
-      // exact state that was screenshotted. Only overflow is integrated so
-      // far; clipping and out-of-bounds follow with dedicated fixtures.
-      const layoutIssues = await this.layoutValidator.checkOverflow(page);
+      // exact state that was screenshotted.
+      const layoutIssues = await this.layoutValidator.checkAll(page);
 
       const filename = screenshotFilename(route.path, breakpoint.name);
       const screenshotPath = path.join(this.config.outputDir, 'temp', filename);

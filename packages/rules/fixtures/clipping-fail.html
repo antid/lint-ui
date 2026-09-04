@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>clipping-fail fixture</title>
+  </head>
+  <body>
+    <main>
+      <h1>Clipping fail</h1>
+      <div class="card" style="height: 48px; overflow: hidden;">
+        <p>
+          This paragraph is much taller than its fixed-height container, so the
+          remaining text is cut off without any scroll affordance or ellipsis.
+          A reader can never reach the hidden sentences. The container clips
+          several full lines of content: second sentence here, third sentence
+          here, fourth sentence here, fifth sentence here, sixth sentence here,
+          seventh sentence here, and an eighth sentence to be completely sure
+          the overflow exceeds any reasonable tolerance threshold.
+        </p>
+      </div>
+    </main>
+  </body>
+</html>

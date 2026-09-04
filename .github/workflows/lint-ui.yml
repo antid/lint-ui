@@ -30,18 +30,21 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Install Playwright browsers
+        # Before unit tests: the env-gated layout fixture tests need Chromium.
+        run: npx playwright install --with-deps chromium
+        working-directory: packages/runner
+
       - name: Build packages
         run: pnpm build
 
       - name: Run unit tests
         run: pnpm test
+        env:
+          LINT_UI_BROWSER_TESTS: '1'
 
       - name: Type-check packages
         run: pnpm typecheck
-      
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
-        working-directory: packages/runner
       
       - name: Build example app
         run: pnpm build

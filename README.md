@@ -107,7 +107,9 @@ baselineDir: .ui-baseline
 - Configurable pixel sensitivity and maximum changed-pixel percentage
 - Multiple breakpoints (mobile, tablet, desktop, large)
 
-Layout and accessibility modules are present but are not part of `lint-ui run` yet.
+Layout checks run as part of `lint-ui run`: horizontal overflow, horizontal
+out-of-bounds elements (both fail the case), plus clipped-text and off-screen
+warnings. Accessibility checks are planned for v1 and are not executed yet.
 See [the v1 specification](V1_SPEC.md) and
 [implementation plan](IMPLEMENTATION_PLAN.md) for their acceptance criteria.
 
