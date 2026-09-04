@@ -47,8 +47,8 @@ and CI runs.
 
 ## M3 — Semantic quality rules
 
-- [ ] Introduce a shared rule interface and finding schema.
-- [ ] Integrate horizontal overflow detection.
+- [x] Introduce a shared rule interface and finding schema.
+- [x] Integrate horizontal overflow detection.
 - [ ] Refine and integrate clipped-text detection using dedicated fixtures.
 - [ ] Add visible horizontal out-of-bounds detection.
 - [ ] Integrate axe-core with impact-level failure policy.

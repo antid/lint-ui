@@ -19,6 +19,10 @@ export class LayoutValidator {
               tag: el.tagName,
               class: el.className,
               id: el.id,
+              x: rect.x,
+              y: rect.y,
+              width: rect.width,
+              height: rect.height,
             };
           }
         }
@@ -26,6 +30,7 @@ export class LayoutValidator {
       });
 
       issues.push({
+        ruleId: 'horizontal-overflow',
         type: 'overflow',
         message: `Horizontal overflow detected${
           overflowingElement
@@ -39,6 +44,14 @@ export class LayoutValidator {
           ? `${overflowingElement.tag}${overflowingElement.id ? `#${overflowingElement.id}` : ''}${
               overflowingElement.class ? `.${overflowingElement.class.split(' ')[0]}` : ''
             }`
+          : undefined,
+        bounds: overflowingElement
+          ? {
+              x: overflowingElement.x,
+              y: overflowingElement.y,
+              width: overflowingElement.width,
+              height: overflowingElement.height,
+            }
           : undefined,
       });
     }
@@ -77,6 +90,7 @@ export class LayoutValidator {
 
     for (const el of clippedElements) {
       issues.push({
+        ruleId: 'clipped-text',
         type: 'clipping',
         message: `Text clipping detected in ${el.tag}${el.class ? `.${el.class.split(' ')[0]}` : ''}`,
         severity: 'warning',
@@ -118,6 +132,7 @@ export class LayoutValidator {
 
     for (const el of offscreenElements) {
       issues.push({
+        ruleId: 'offscreen-element',
         type: 'offscreen',
         message: `Important element (${el.tag}) is off-screen: "${el.text}"`,
         severity: 'warning',

@@ -4,6 +4,7 @@ import * as path from 'path';
 import { createHash } from 'node:crypto';
 import type { Config, ScreenshotResult, TestResult, RunResults, Route } from './types.js';
 import { VisualDiffer } from './differ.js';
+import { LayoutValidator } from '@lint-ui/rules';
 
 // Total capture attempts per route/viewport case: one try plus one retry.
 // Deliberately not configurable: retries exist only to absorb known transient
@@ -22,6 +23,7 @@ export class Runner {
   private config: Config;
   private launchBrowser: () => Promise<Browser>;
   private createDiffer: () => VisualDiffer;
+  private layoutValidator = new LayoutValidator();
 
   constructor(
     config: Config,
@@ -85,7 +87,7 @@ export class Runner {
               breakpoint: breakpoint.name,
               status: 'passed',
               passed: true,
-              layoutIssues: [],
+              layoutIssues: screenshot.layoutIssues,
               accessibilityViolations: [],
             };
 
@@ -117,6 +119,16 @@ export class Runner {
                   fs.writeFileSync(result.visualDiff.diffImagePath, diffResult.diffImage);
                 }
               }
+            }
+
+            // Layout errors fail the case even when visual comparison passes or
+            // could not run; warnings are reported without failing.
+            const layoutErrors = (result.layoutIssues ?? []).filter(
+              issue => issue.severity === 'error',
+            );
+            if (layoutErrors.length > 0) {
+              result.status = 'failed';
+              result.passed = false;
             }
 
             results.push(result);
@@ -241,6 +253,11 @@ export class Runner {
         }
       }
 
+      // Layout validation shares this page session so findings describe the
+      // exact state that was screenshotted. Only overflow is integrated so
+      // far; clipping and out-of-bounds follow with dedicated fixtures.
+      const layoutIssues = await this.layoutValidator.checkOverflow(page);
+
       const filename = screenshotFilename(route.path, breakpoint.name);
       const screenshotPath = path.join(this.config.outputDir, 'temp', filename);
       
@@ -260,6 +277,7 @@ export class Runner {
         breakpoint: breakpoint.name,
         path: screenshotPath,
         timestamp: Date.now(),
+        layoutIssues,
       };
     } finally {
       await page.close();

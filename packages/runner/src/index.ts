@@ -8,3 +8,8 @@ export type {
   ScreenshotResult,
   TestResult,
 } from './types.js';
+export type {
+  AccessibilityViolation,
+  ElementBounds,
+  LayoutIssue,
+} from '@lint-ui/rules';
