@@ -27,7 +27,7 @@ The command must exit predictably so it can act as a CI quality gate.
 
 - Node.js 20 or newer.
 - Chromium through Playwright.
-- Public pages and authenticated pages using a Playwright storage-state file.
+- Public pages without authentication.
 - YAML configuration in `lint-ui.yml`.
 - Explicit routes and viewport sizes.
 - Full-page screenshots.
@@ -111,6 +111,8 @@ fail it by default.
 - Cross-browser rendering comparison.
 - Automatic route discovery or `--changed-only` source analysis.
 - Theme, locale, and user-role matrix expansion.
+- Authenticated flows (for example Playwright storage-state login).
+- Overlap, minimum-target-size, and breakpoint-visibility heuristics.
 - Direct pull-request comment management.
 - Performance or Core Web Vitals testing.
 
