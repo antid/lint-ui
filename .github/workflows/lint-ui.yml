@@ -50,15 +50,27 @@ jobs:
       - name: Start preview server
         working-directory: examples/react-vite
         run: |
-          nohup pnpm preview -- --host 127.0.0.1 --port 4173 > /tmp/preview.log 2>&1 &
+          test -d dist || { echo "ERROR: dist/ is missing - the example build produced no output"; exit 1; }
+          # Bind all interfaces so 127.0.0.1 works regardless of localhost
+          # IPv6/IPv4 resolution. strictPort fails fast instead of silently
+          # moving to another port we are not health-checking. npx calls the
+          # local vite binary directly so no arg-forwarding is involved.
+          nohup npx vite preview --host 0.0.0.0 --port 4173 --strictPort > /tmp/preview.log 2>&1 &
           echo $! > /tmp/preview.pid
-          sleep 2
+          sleep 3
+          if ! kill -0 "$(cat /tmp/preview.pid)" 2>/dev/null; then
+            echo "Preview process exited immediately. Logs:"
+            cat /tmp/preview.log
+            exit 1
+          fi
       
       - name: Wait for server
         run: |
           timeout 60 bash -c 'until curl -fs http://127.0.0.1:4173/ > /dev/null; do sleep 1; done' || {
-            echo "Preview server failed to start. Logs:"
+            echo "Preview server not reachable at http://127.0.0.1:4173/. Logs:"
             cat /tmp/preview.log
+            echo "--- listening sockets ---"
+            (ss -ltn 2>/dev/null || netstat -ltn 2>/dev/null || true)
             exit 1
           }
       
@@ -87,6 +99,14 @@ jobs:
             examples/react-vite/.lint-ui/
             !examples/react-vite/.lint-ui/temp/
           retention-days: 30
+      
+      - name: Upload preview log (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: preview-log
+          path: /tmp/preview.log
+          retention-days: 7
       
       - name: Upload baseline screenshots
         if: github.ref == 'refs/heads/main'
