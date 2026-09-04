@@ -3,13 +3,16 @@
 > **Codename: lint-ui**  
 > Visual regression testing for modern web applications
 
-Lint UI is an early-stage, local-first CLI for recording responsive page screenshots
-and comparing them with approved baselines. Layout and accessibility validation are
-planned for v1 but are not connected to the runner yet.
+Lint UI is a local-first CLI for recording responsive page screenshots, comparing
+them with approved baselines, and checking layout and accessibility in the same
+run — with a self-contained HTML report for every failure.
 
 ## Features
 
 - 🎯 **Visual Regression Testing** - Screenshot diffs across multiple breakpoints
+- 📐 **Layout Checks** - Failing overflow and out-of-bounds detection, plus
+  clipped-text warnings, all with selectors and bounds
+- ♿ **Accessibility Checks** - axe-core violations with impact-level failure policy
 - 📱 **Responsive Coverage** - Capture configured routes at multiple viewport sizes
 - 🧾 **Diff Evidence** - Generate current and pixel-diff images for failures
 - 📄 **Self-contained HTML report** - Filter by status, route, viewport, and
@@ -22,6 +25,9 @@ planned for v1 but are not connected to the runner yet.
 ```bash
 # Install dependencies
 pnpm install
+
+# Install the Playwright browser (one-time per machine)
+pnpm --filter @lint-ui/runner exec playwright install chromium
 
 # Build all packages
 pnpm build
@@ -127,15 +133,21 @@ See [the v1 specification](V1_SPEC.md) and
 GitHub Actions workflow included at `.github/workflows/lint-ui.yml`:
 
 - Runs on every PR
-- Caches baseline screenshots
+- Restores shared baseline screenshots (records them on first run)
 - Posts results as PR comments
-- Uploads diff artifacts
+- Verifies stability with five consecutive runs
+- Smoke-tests an external install outside the monorepo
+- Uploads the HTML report, diff images, and logs as artifacts
+- Runs build, lint, and unit tests on Ubuntu, macOS, and Windows
 
 ## Development
 
 ```bash
 # Install dependencies
 pnpm install
+
+# Install the Playwright browser (one-time per machine)
+pnpm --filter @lint-ui/runner exec playwright install chromium
 
 # Build all packages
 pnpm build
@@ -146,8 +158,11 @@ pnpm --filter @lint-ui/cli build
 # Run in watch mode
 pnpm dev
 
-# Run unit tests
+# Run unit tests (set LINT_UI_BROWSER_TESTS=1 to include real-browser tests)
 pnpm test
+
+# Lint all packages
+pnpm lint
 ```
 
 ## Documentation
