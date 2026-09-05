@@ -10,8 +10,8 @@ Update these totals as evidence accumulates.
 | Metric | Current |
 | --- | ---: |
 | Real projects integrated | 1 |
-| UI work sessions observed | 2 |
-| Runs completed | 19 |
+| UI work sessions observed | 3 |
+| Runs completed | 25 |
 | True positives | 4 |
 | False positives | 3 |
 | False negatives | 0 |
@@ -123,6 +123,28 @@ Copy this section for each session.
 - Portfolio relevance: demonstrates that a real app exposed a gap in generic
   capture controls, leading to a narrow product fix and a verified semantic
   repair before baseline stability was claimed.
+
+### 2026-09-05 — Antid Waves baseline
+
+- Project and branch: `antid-website-v9`, `antid/waves` (React 18 + Vite).
+- Product change being tested: the selected FFT WebGPU portfolio direction,
+  including its static fallback and persistent theme control.
+- Lint UI version/commit: local `fix/capture-animation-settlement` branch.
+- Routes and viewports: `/` and `/case-studies/codiga` at 375×812, 768×1024,
+  and 1440×900 (six cases).
+- Run duration: one baseline recording, one initial gate, and five repeats.
+- Result: all six cases passed on the initial gate and every repeat, with zero
+  visual diffs, layout findings, and accessibility violations.
+- Classification: stable baseline evidence.
+- What Lint UI showed: the Waves capture is deterministic across the configured
+  mobile, tablet, and desktop cases despite its progressive WebGPU background.
+- Action taken in the application: promoted the concept as `antid/waves`, added
+  the existing dogfood configuration and landmark/accessibility fixes, and
+  recorded a separate Waves baseline set.
+- Evidence paths or links: `antid-website-v9/.worktrees/theme-2/.ui-baseline`
+  and `.lint-ui/report.json`.
+- Portfolio relevance: validates that the selected visual direction can be
+  tested as a stable quality gate, including its fallback path.
 
 ## Decision log
 
